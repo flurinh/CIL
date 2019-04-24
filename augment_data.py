@@ -29,6 +29,7 @@ def transform_image_combined(image_1, image_2, counter):
     return counter
 
 
+
 # point to the correct directories
 original_root_dir = 'training'
 original_input_dir = original_root_dir + '/images/'
@@ -37,6 +38,8 @@ original_target_dir = original_root_dir + '/groundtruth/'
 augmented_root_dir = 'train_augmented'
 augmented_input_dir = augmented_root_dir + '/input/'
 augmented_target_dir = augmented_root_dir + '/target/'
+
+# TODO: create folders if they are not there
 
 # load images
 original_input_images = glob.glob(original_input_dir + '*.png')
