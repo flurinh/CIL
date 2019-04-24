@@ -1,7 +1,7 @@
 from PIL import Image
 import random
 import glob
-
+import os
 
 def transform_image_combined(image_1, image_2, counter):
     '''
@@ -39,7 +39,10 @@ augmented_root_dir = 'train_augmented'
 augmented_input_dir = augmented_root_dir + '/input/'
 augmented_target_dir = augmented_root_dir + '/target/'
 
-# TODO: create folders if they are not there
+for name in [original_root_dir, original_input_dir, original_target_dir,
+             augmented_root_dir, augmented_input_dir, augmented_target_dir]:
+    if not os.path.isdir(name):
+        os.mkdir(name)
 
 # load images
 original_input_images = glob.glob(original_input_dir + '*.png')
