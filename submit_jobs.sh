@@ -1,7 +1,7 @@
 #!/bin/bash
 
-declare -a LearningRates=("0.1", "0.01", "0.001", "0.0001", "0.00001")
-declare -a BatchSizes=("2", "4", "8", "16", "32", "64")
+declare -a LearningRates=("0.1" "0.01" "0.001" "0.0001" "0.00001")
+declare -a BatchSizes=("2" "4" "8" "16" "32" "64")
 
 # Iterate the string array using for loop
 for lr in ${LearningRates[@]}; do
