@@ -80,7 +80,7 @@ for n in range(NUMBER_EPOCHS):
             inputs = batch['input']
             print(inputs.size())
             outputs = model(inputs)
-            outputs = outputs[0].view((400, 400)).detach().numpy()
+            outputs = outputs[0].cpu().view((400, 400)).detach().numpy()
             outputs = [[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs]
             diff = outputs - batch['target']
             squared = np.square(diff)
