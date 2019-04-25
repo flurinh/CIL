@@ -84,7 +84,7 @@ for n in range(NUMBER_EPOCHS):
             outputs = np.asarray([[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs])
             diff = outputs - batch['target'].cpu().view((400, 400)).detach().numpy()
             squared = np.square(diff)
-            accuracy = squared/diff.size()
+            accuracy = np.sum(squared)/diff.size
             val_loss += accuracy
 
     val_loss /= len(val_data)
