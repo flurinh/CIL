@@ -1,10 +1,16 @@
 import torch
 import tensorboardX
-
-print(torch.cuda.is_available())
 from DataWrapper import *
 from torch.utils.data import  DataLoader, SubsetRandomSampler
 import random
+import numpy as np
+
+seed = 42
+np.random.seed(seed)
+torch.manual_seed(seed)
+
+if print(torch.cuda.is_available()) is False:
+    print("CUDA unavailable, using CPU!")
 
 input_dir = 'train_augmented/input/'
 target_dir = 'train_augmented/target/'
