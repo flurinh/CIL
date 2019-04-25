@@ -92,7 +92,7 @@ for n in range(NUMBER_EPOCHS):
 
     if val_loss < best_val:
         writer.add_graph("Best Model", model, dummy_input)
-        torch.save(model, 'models/best.pt')
+        torch.save(model, 'models/'+LOG_NAME+'.pt')
         best_val = val_loss
 
 # print("Done Training -- Starting Evaluation")
