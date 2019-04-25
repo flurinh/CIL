@@ -28,7 +28,7 @@ PREDICT_TRAINING = True
 # image size should be an integer multiple of this number!
 IMG_PATCH_SIZE = 16
 
-tf.app.flags.DEFINE_string('train_dir', 'C:/Valentin/models/cil_project',
+tf.app.flags.DEFINE_string('train_dir', '/models',
                            """Directory where to write event logs """
                            """and checkpoint.""")
 FLAGS = tf.app.flags.FLAGS
