@@ -1,3 +1,5 @@
 /venv/
 /train_augmented/
 /.idea/
+/predictions_test/
+/predictions_training/
