@@ -42,6 +42,7 @@ number_of_epochs = 3
 test_indices = []
 mean_losses = []
 figure = plt.figure()
+best_val = np.inf
 for n in range(number_of_epochs):
     [training_data, val_data, test_data, test_indices] = create_batches(data, test_indices, batch_size=BATCH_SIZE)
     print("Starting Epoch:\t", n)
@@ -64,12 +65,17 @@ for n in range(number_of_epochs):
     plt.pause(0.01)
 
     val_loss = 0
+
     for i_batch, batch in enumerate(val_data):
         inputs = batch['input']
         outputs = model(inputs)
         loss = criterion(outputs, batch['target'])
         val_loss += loss
     val_loss /= len(val_data)
+
+    if val_loss < best_val:
+        torch.save(model, 'models/best.pt')
+        best_val = val_loss
 
 print("Done Training -- Starting Evaluation")
 for i_batch, batch in enumerate(test_data):
