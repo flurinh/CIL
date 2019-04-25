@@ -12,7 +12,7 @@ from tensorboardX import SummaryWriter
 writer = SummaryWriter('logdir/exp-1')
 
 LEARNING_RATE = 1e-3
-BATCH_SIZE = 3
+BATCH_SIZE = 1
 
 seed = 42
 np.random.seed(seed)
@@ -52,6 +52,7 @@ for n in range(number_of_epochs):
     [training_data, val_data, test_data, test_indices] = create_batches(data, test_indices, batch_size=BATCH_SIZE)
     print("Starting Epoch:\t", n)
     losses = []
+    model.train()
     for i_batch, batch in enumerate(training_data):
         optimizer.zero_grad()
         inputs = batch['input']
@@ -60,22 +61,17 @@ for n in range(number_of_epochs):
         loss.backward()
         optimizer.step()
         print("Epoch:\t", n, "\t Batch:\t", i_batch, "\tof\t", len(training_data))
-        torch.save(model.state_dict(), 'models/test.pt')
         losses.append(loss.cpu().detach().numpy())
 
     writer.add_scalar('Training Loss', np.mean(mean_losses), n)
-    # mean_losses.append(np.mean(losses))
-    # plt.clf()
-    # plt.plot(mean_losses)
-    # plt.show()
-    # plt.pause(0.01)
-
     val_loss = 0
     for i_batch, batch in enumerate(val_data):
+        model.eval()
         inputs = batch['input']
         outputs = model(inputs)
         loss = criterion(outputs, batch['target'])
         val_loss += loss
+
     val_loss /= len(val_data)
     writer.add_scalar('Validation Loss', val_loss, n)
 
