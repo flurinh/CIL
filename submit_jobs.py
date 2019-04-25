@@ -8,5 +8,6 @@ n_epochs = 50
 for lr in learning_rates:
     for bs in batch_sizes:
         name = "lr_" + str(lr) + "_bs_" + str(bs)
-        os.system('python train.py ' + lr + ' ' + bs + ' ' + n_epochs + ' ' + name)
+        os.system('bsub -n 4 -W 25:00 -R "rusage[mem=4096, ngpus_excl_p=2]" python train.py ' + str(lr) + ' ' + str(bs) + ' ' + str(n_epochs) + ' ' + name)
         time.sleep(1)
+    time.sleep(3600)
