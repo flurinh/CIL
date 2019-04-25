@@ -4,27 +4,32 @@ import torch.nn.functional as F
 
 class SimpleCNN(nn.Module):
     def __init__(self):
-        # TODO: I am unsure how to adjust the stride, kernel and padding so that the input is the same as the output dimension.
-
         super(SimpleCNN, self).__init__()
-        self.encoder = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3, stride=1, padding=2),
-            nn.ReLU(True),
-            nn.MaxPool2d(2, stride=1),
-            nn.Conv2d(16, 8, 3, stride=1, padding=2),
-            nn.ReLU(True),
-            nn.MaxPool2d(2, stride=1)
-        )
-        self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(8, 16, 3, stride=1, padding=2),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(16, 8, 5, stride=1, padding=2),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(8, 1, 1),
-            nn.Sigmoid()
-        )
+
+        # encoder
+        self.enc_conv1 = nn.Conv2d(in_channels=3, out_channels=8, kernel_size=5, stride=4, padding=0)
+        self.enc_maxpool1 = nn.MaxPool2d(2, stride=2, return_indices=True)
+        self.enc_conv2 = nn.Conv2d(in_channels=8, out_channels=16, kernel_size=3, stride=2, padding=0)
+        self.enc_maxpool2 = nn.MaxPool2d(2, stride=2, return_indices=True)
+
+        self.dec_unpool2 = nn.MaxUnpool2d(2, stride=2)
+        self.dec_conv2 = nn.ConvTranspose2d(16, 8, 3, stride=2, padding=0)
+        self.dec_unpool3 = nn.MaxUnpool2d(2, stride=2)
+        self.dec_conv3 = nn.ConvTranspose2d(8, 1, kernel_size=8, stride=4, padding=0)
+        self.dec_conv4 = nn.ConvTranspose2d(1, 1, kernel_size=5, stride=1, padding=0)
 
     def forward(self, x):
-        x = self.encoder(x)
-        x = self.decoder(x)
+        print(x.size())
+        x = F.relu(self.enc_conv1(x))
+        x, i1 = self.enc_maxpool1(x)
+        x = F.relu(self.enc_conv2(x))
+
+        x, i2 = self.enc_maxpool2(x)
+        x = self.dec_unpool2(x, i2)
+
+        x = F.relu(self.dec_conv2(x))
+        x = self.dec_unpool3(x, i1)
+        x = F.relu(self.dec_conv3(x))
+        x = F.sigmoid(self.dec_conv4(x))
+        print(x.size())
         return x

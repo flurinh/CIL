@@ -25,20 +25,32 @@ else:
     print("CUDA unavailable, using CPU!")
 
 criterion = nn.MSELoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-2, weight_decay=0.0)
-number_of_epochs = 10
+optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+number_of_epochs = 100
 test_indices = []
+mean_losses = []
+figure = plt.figure()
 for n in range(number_of_epochs):
-    [training_data, val_data, test_data, test_indices] = create_batches(data, test_indices)
+    [training_data, val_data, test_data, test_indices] = create_batches(data, test_indices, batch_size=16)
     print("Starting Epoch:\t", n)
+    losses = []
     for i_batch, batch in enumerate(training_data):
+        optimizer.zero_grad()
         inputs = batch['input']
         outputs = model(inputs)
         loss = criterion(batch['target'], outputs)
         loss.backward()
-        optimizer.zero_grad()
         optimizer.step()
         print("Epoch:\t", n, "\t Batch:\t", i_batch, "\tof\t", len(training_data))
+        torch.save(model.state_dict(), 'models/test.pt')
+        losses.append(loss.cpu().detach().numpy())
+
+    mean_losses.append(np.mean(losses))
+    plt.clf()
+    plt.plot(mean_losses)
+    plt.show()
+    plt.pause(0.01)
+
 
 print("Done Training -- Starting Evaluation")
 for i_batch, batch in enumerate(test_data):
