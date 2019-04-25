@@ -4,10 +4,15 @@ from DataWrapper import *
 from torch.utils.data import DataLoader, SubsetRandomSampler
 import random
 import numpy as np
-from models import *
+from architectures import *
 import torch.nn as nn
 import torch.optim
-from plotter_helper import  *
+from plotter_helper import *
+from tensorboardX import SummaryWriter
+writer = SummaryWriter('logdir/exp-1')
+
+LEARNING_RATE = 1e-3
+BATCH_SIZE = 3
 
 seed = 42
 np.random.seed(seed)
@@ -18,41 +23,66 @@ target_dir = 'train_augmented/target/'
 
 data = DataWrapper(input_dir, target_dir, torch.cuda.is_available())
 
-# generate indices for creating train, eval and test set.
-indices = range(len(data))
-training_indices = random.sample(indices, k=int(0.6 * len(data)))
-indices_2 = [x for x in indices if x not in training_indices]
-eval_indices = random.sample(indices_2, k=int(0.2 * len(data)))
-indices_3 = [x for x in indices_2 if x not in eval_indices]
-test_indices = indices_3
-assert len(training_indices) + len(test_indices) + len(eval_indices) == len(data), "Not all data is used!"
-
-# create batches, shuffle needs to be false because we use the sampler.
-training_data = DataLoader(data, shuffle=False, batch_size=10, sampler=SubsetRandomSampler(training_indices))
-eval_data = DataLoader(data, shuffle=False, batch_size=1, sampler=SubsetRandomSampler(eval_indices))
-test_data = DataLoader(data, shuffle=False, batch_size=1, sampler=SubsetRandomSampler(test_indices))
-
-model = SimpleCNN()
+model = UNet(3, 2)
 if torch.cuda.is_available():
+    torch.cuda.empty_cache()
     model.cuda()
 else:
     print("CUDA unavailable, using CPU!")
 
+criterion = nn.BCELoss()
+optimizer = torch.optim.SGD(model.parameters(),
+                                  lr=LEARNING_RATE,
+                                  momentum=0.9,
+                                  weight_decay=0.0005)
 
-criterion = nn.MSELoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-2, weight_decay=0.0)
-number_of_epochs = 1
+model_parameters = filter(lambda p: p.requires_grad, model.parameters())
+params = sum([np.prod(p.size()) for p in model_parameters])
+print("number of trainable paramters in model:", params)
+
+number_of_epochs = 3
+test_indices = []
+mean_losses = []
+figure = plt.figure()
+best_val = np.inf
+
+dummy_input = (torch.zeros(3, 400, 400),)
 
 for n in range(number_of_epochs):
+    [training_data, val_data, test_data, test_indices] = create_batches(data, test_indices, batch_size=BATCH_SIZE)
     print("Starting Epoch:\t", n)
+    losses = []
     for i_batch, batch in enumerate(training_data):
+        optimizer.zero_grad()
         inputs = batch['input']
         outputs = model(inputs)
-        loss = criterion(batch['target'], outputs)
+        loss = criterion(outputs, batch['target'])
         loss.backward()
-        optimizer.zero_grad()
         optimizer.step()
         print("Epoch:\t", n, "\t Batch:\t", i_batch, "\tof\t", len(training_data))
+        torch.save(model.state_dict(), 'models/test.pt')
+        losses.append(loss.cpu().detach().numpy())
+
+    writer.add_scalar('Training Loss', np.mean(mean_losses), n)
+    # mean_losses.append(np.mean(losses))
+    # plt.clf()
+    # plt.plot(mean_losses)
+    # plt.show()
+    # plt.pause(0.01)
+
+    val_loss = 0
+    for i_batch, batch in enumerate(val_data):
+        inputs = batch['input']
+        outputs = model(inputs)
+        loss = criterion(outputs, batch['target'])
+        val_loss += loss
+    val_loss /= len(val_data)
+    writer.add_scalar('Validation Loss', val_loss, n)
+
+    if val_loss < best_val:
+        writer.add_graph("Best Model", model, dummy_input)
+        torch.save(model, 'models/best.pt')
+        best_val = val_loss
 
 print("Done Training -- Starting Evaluation")
 for i_batch, batch in enumerate(test_data):
@@ -61,4 +91,10 @@ for i_batch, batch in enumerate(test_data):
     inputs = batch['input']
     outputs = model(inputs)
     groundtruth = batch['target']
-    evaluation_side_by_side_plot(inputs, outputs, groundtruth)
+    outputs = outputs.cpu()
+    outputs = outputs[0].view((400, 400)).detach().numpy()
+    print(outputs)
+    outputs = [[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs]
+    print(outputs)
+    print(groundtruth.cpu())
+    evaluation_side_by_side_plot(inputs.cpu(), outputs, groundtruth.cpu())
