@@ -65,8 +65,8 @@ for n in range(NUMBER_EPOCHS):
         optimizer.step()
         print("Epoch:\t", n, "\t Batch:\t", i_batch, "\tof\t", len(training_data))
         losses.append(loss.cpu().detach().numpy())
-    losses = []
-    writer.add_scalar('Training Loss', float(np.mean(mean_losses)), n)
+
+    writer.add_scalar('Training Loss', float(np.mean(losses)), n)
     val_loss = 0
     for i_batch, batch in enumerate(val_data):
         model.eval()
