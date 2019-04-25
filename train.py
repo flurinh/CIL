@@ -27,10 +27,10 @@ else:
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-2, weight_decay=0.0)
 number_of_epochs = 10
-[training_data, val_data, test_data] = create_batches(data)
+test_indices = []
 for n in range(number_of_epochs):
+    [training_data, val_data, test_data, test_indices] = create_batches(data, test_indices)
     print("Starting Epoch:\t", n)
-
     for i_batch, batch in enumerate(training_data):
         inputs = batch['input']
         outputs = model(inputs)
