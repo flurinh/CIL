@@ -8,6 +8,8 @@ from architectures import *
 import torch.nn as nn
 import torch.optim
 from plotter_helper import *
+from tensorboardX import SummaryWriter
+writer = SummaryWriter('logdir/exp-1')
 
 LEARNING_RATE = 1e-3
 BATCH_SIZE = 3
@@ -43,6 +45,9 @@ test_indices = []
 mean_losses = []
 figure = plt.figure()
 best_val = np.inf
+
+dummy_input = (torch.zeros(3, 400, 400),)
+
 for n in range(number_of_epochs):
     [training_data, val_data, test_data, test_indices] = create_batches(data, test_indices, batch_size=BATCH_SIZE)
     print("Starting Epoch:\t", n)
@@ -58,22 +63,24 @@ for n in range(number_of_epochs):
         torch.save(model.state_dict(), 'models/test.pt')
         losses.append(loss.cpu().detach().numpy())
 
-    mean_losses.append(np.mean(losses))
-    plt.clf()
-    plt.plot(mean_losses)
-    plt.show()
-    plt.pause(0.01)
+    writer.add_scalar('Training Loss', np.mean(mean_losses), n)
+    # mean_losses.append(np.mean(losses))
+    # plt.clf()
+    # plt.plot(mean_losses)
+    # plt.show()
+    # plt.pause(0.01)
 
     val_loss = 0
-
     for i_batch, batch in enumerate(val_data):
         inputs = batch['input']
         outputs = model(inputs)
         loss = criterion(outputs, batch['target'])
         val_loss += loss
     val_loss /= len(val_data)
+    writer.add_scalar('Validation Loss', val_loss, n)
 
     if val_loss < best_val:
+        writer.add_graph("Best Model", model, dummy_input)
         torch.save(model, 'models/best.pt')
         best_val = val_loss
 
