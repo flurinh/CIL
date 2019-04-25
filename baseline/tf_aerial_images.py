@@ -19,19 +19,19 @@ TRAINING_SIZE = 80
 VALIDATION_SIZE = 20  # Size of the validation set.
 SEED = 66478  # Set to None for random seed.
 BATCH_SIZE = 16 # 64
-NUM_EPOCHS = 100
-RESTORE_MODEL = True # If True, restore existing model instead of training a new one
+NUM_EPOCHS = 1000
+RESTORE_MODEL = False # If True, restore existing model instead of training a new one
 RECORDING_STEP = 1000
-PREDICT_TRAINING = False
+PREDICT_TRAINING = True
 PREDICT_VALIDATION = True
-PREDICT_TEST = False
+PREDICT_TEST = True
 
 # Set image patch size in pixels
 # IMG_PATCH_SIZE should be a multiple of 4
 # image size should be an integer multiple of this number!
 IMG_PATCH_SIZE = 16
 
-tf.app.flags.DEFINE_string('train_dir', 'models/100episodes',
+tf.app.flags.DEFINE_string('train_dir', 'models',
                            """Directory where to write event logs """
                            """and checkpoint.""")
 FLAGS = tf.app.flags.FLAGS
@@ -194,7 +194,7 @@ def make_img_overlay(img, predicted_img):
 
 def main(argv=None):  # pylint: disable=unused-argument
 
-    data_dir = 'training/'
+    data_dir = '../training/'
     train_data_filename = data_dir + 'images/'
     train_labels_filename = data_dir + 'groundtruth/'
 
@@ -484,6 +484,8 @@ def main(argv=None):  # pylint: disable=unused-argument
             training_indices = range(train_size)
             val_indices = range(validation_size)
 
+            best_error = numpy.Inf
+
             for iepoch in range(num_epochs):
 
                 # Permute training indices
@@ -540,9 +542,10 @@ def main(argv=None):  # pylint: disable=unused-argument
                 summary_writer.add_summary(summ, iepoch)
 
                 # Save the variables to disk.
-                if iepoch != 0 and iepoch % 10 == 0:
+                if avg_error < best_error:
                     save_path = saver.save(s, FLAGS.train_dir + "/model.ckpt")
                     print("Model saved in file: %s" % save_path)
+                    best_error = avg_error
 
         if PREDICT_TRAINING:
             print("Running prediction on training set")
@@ -575,7 +578,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
         if PREDICT_TEST:
             print("Running prediction on test set")
-            test_dir = 'test/'
+            test_dir = '../test/'
             last_test_label = 223
 
             prediction_test_dir = "predictions_test/"
@@ -583,7 +586,7 @@ def main(argv=None):  # pylint: disable=unused-argument
                 os.mkdir(prediction_test_dir)
 
             for i in range(1, 224):
-                filename = "test/test_" + str(i) + ".png"
+                filename = "../test/test_" + str(i) + ".png"
                 if not os.path.isfile(filename):
                     continue
                 print("Loading image {}".format(filename))
