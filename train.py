@@ -10,7 +10,7 @@ import torch.optim
 from plotter_helper import *
 
 seed = 42
-# np.random.seed(seed)
+np.random.seed(seed)
 torch.manual_seed(seed)
 
 input_dir = 'train_augmented/input/'
@@ -18,15 +18,15 @@ target_dir = 'train_augmented/target/'
 
 data = DataWrapper(input_dir, target_dir, torch.cuda.is_available())
 
-model = SimpleCNN()
+model = UNet(3,2)
 if torch.cuda.is_available():
     model.cuda()
 else:
     print("CUDA unavailable, using CPU!")
 
 criterion = nn.MSELoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-number_of_epochs = 100
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0.1, amsgrad=False)
+number_of_epochs = 3
 test_indices = []
 mean_losses = []
 figure = plt.figure()
@@ -38,7 +38,7 @@ for n in range(number_of_epochs):
         optimizer.zero_grad()
         inputs = batch['input']
         outputs = model(inputs)
-        loss = criterion(batch['target'], outputs)
+        loss = criterion(outputs, batch['target'])
         loss.backward()
         optimizer.step()
         print("Epoch:\t", n, "\t Batch:\t", i_batch, "\tof\t", len(training_data))
@@ -61,5 +61,8 @@ for i_batch, batch in enumerate(test_data):
     groundtruth = batch['target']
     outputs = outputs.cpu()
     outputs = outputs[0].view((400, 400)).detach().numpy()
-    outputs = [[0 if pixel < 0.5 else 1 for pixel in row] for row in outputs]
+    print(outputs)
+   # outputs = [[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs]
+    print(outputs)
+    print(groundtruth.cpu())
     evaluation_side_by_side_plot(inputs.cpu(), outputs, groundtruth.cpu())

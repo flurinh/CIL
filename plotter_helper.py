@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 def evaluation_side_by_side_plot(inputs, outputs, groundtruth):
     fig = plt.figure()
     ax1 = fig.add_subplot(1, 3, 1)
-    ax1.imshow(inputs[0].permute((1, 2, 0)).numpy().astype(int))
+    ax1.imshow(inputs[0].permute((1, 2, 0)).numpy())
     ax1.set_title("Input")
     ax2 = fig.add_subplot(1, 3, 2)
     ax2.imshow(outputs, cmap='Greys_r')
