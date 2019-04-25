@@ -3,6 +3,7 @@
 /.idea/
 /predictions_test/
 /predictions_training/
+/predictions_validation/
 /models/
 dummy_submission.csv
 sample_submission.csv
