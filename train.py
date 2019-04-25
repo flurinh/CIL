@@ -63,7 +63,8 @@ for n in range(NUMBER_EPOCHS):
         loss = criterion(outputs, batch['target'])
         loss.backward()
         optimizer.step()
-        print("Epoch:\t", n, "\t Batch:\t", i_batch, "\tof\t", len(training_data))
+        if i_batch % 100 == 0:
+            print("Epoch:\t", n, "\t Batch:\t", i_batch, "\tof\t", len(training_data))
         losses.append(loss.cpu().detach().numpy())
 
     writer.add_scalar('Training Loss', float(np.mean(losses)), n)
