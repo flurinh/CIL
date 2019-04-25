@@ -8,6 +8,7 @@ import torch.nn as nn
 import torch.optim
 from plotter_helper import *
 from tensorboardX import SummaryWriter
+from skimage import io
 
 writer = SummaryWriter('logdir/exp-1')
 
