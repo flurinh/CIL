@@ -4,7 +4,7 @@ from DataWrapper import *
 from torch.utils.data import DataLoader, SubsetRandomSampler
 import random
 import numpy as np
-from models import *
+from architectures import *
 import torch.nn as nn
 import torch.optim
 from plotter_helper import  *
@@ -38,10 +38,9 @@ if torch.cuda.is_available():
 else:
     print("CUDA unavailable, using CPU!")
 
-
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-2, weight_decay=0.0)
-number_of_epochs = 1
+number_of_epochs = 100
 
 for n in range(number_of_epochs):
     print("Starting Epoch:\t", n)
@@ -61,4 +60,4 @@ for i_batch, batch in enumerate(test_data):
     inputs = batch['input']
     outputs = model(inputs)
     groundtruth = batch['target']
-    evaluation_side_by_side_plot(inputs, outputs, groundtruth)
+    evaluation_side_by_side_plot(inputs.cpu(), outputs.cpu(), groundtruth.cpu())
