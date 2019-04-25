@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from unet_parts import *
 
+
 class SimpleCNN(nn.Module):
     def __init__(self):
         super(SimpleCNN, self).__init__()
@@ -35,8 +36,6 @@ class SimpleCNN(nn.Module):
         x = F.relu(self.dec_conv5(x))
         x = F.softmax(self.dec_conv6(x))
         return x
-
-
 
 
 class UNet(nn.Module):
