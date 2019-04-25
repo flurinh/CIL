@@ -17,9 +17,9 @@ NUM_LABELS = 2
 TRAINING_SIZE = 80
 VALIDATION_SIZE = 20  # Size of the validation set.
 SEED = 66478  # Set to None for random seed.
-BATCH_SIZE = 16  # 64
-NUM_EPOCHS = 500
-RESTORE_MODEL = False  # If True, restore existing model instead of training a new one
+BATCH_SIZE = 16 # 64
+NUM_EPOCHS = 100
+RESTORE_MODEL = True  # If True, restore existing model instead of training a new one
 RECORDING_STEP = 1000
 PREDICT_TRAINING = False
 
@@ -28,7 +28,7 @@ PREDICT_TRAINING = False
 # image size should be an integer multiple of this number!
 IMG_PATCH_SIZE = 16
 
-tf.app.flags.DEFINE_string('train_dir', 'C:/Valentin/models/cil_project',
+tf.app.flags.DEFINE_string('train_dir', 'models',
                            """Directory where to write event logs """
                            """and checkpoint.""")
 FLAGS = tf.app.flags.FLAGS
@@ -136,15 +136,18 @@ def print_predictions(predictions, labels):
 
 
 # Convert array of labels to an image
-def label_to_img(imgwidth, imgheight, w, h, labels):
+def label_to_img(imgwidth, imgheight, w, h, labels, binary=True):
     array_labels = numpy.zeros([imgwidth, imgheight])
     idx = 0
     for i in range(0, imgheight, h):
         for j in range(0, imgwidth, w):
-            if labels[idx][0] > 0.5:
-                l = 0
+            if binary:
+                if labels[idx][0] > 0.5:
+                    l = 1
+                else:
+                    l = 0
             else:
-                l = 1
+                l = labels[idx][0]
             array_labels[j:j + w, i:i + h] = l
             idx = idx + 1
     return array_labels
@@ -188,7 +191,7 @@ def make_img_overlay(img, predicted_img):
 
 def main(argv=None):  # pylint: disable=unused-argument
 
-    data_dir = 'C:/Valentin/datasets/cil_project/training/'
+    data_dir = 'training/'
     train_data_filename = data_dir + 'images/'
     train_labels_filename = data_dir + 'groundtruth/'
 
@@ -287,35 +290,36 @@ def main(argv=None):  # pylint: disable=unused-argument
         return V
 
     # Get prediction for given input image 
-    def get_prediction(img):
+    def get_prediction(img, binary=True):
         data = numpy.asarray(img_crop(img, IMG_PATCH_SIZE, IMG_PATCH_SIZE))
         data_node = tf.constant(data)
         output = tf.nn.softmax(model(data_node))
         output_prediction = s.run(output)
-        img_prediction = label_to_img(img.shape[0], img.shape[1], IMG_PATCH_SIZE, IMG_PATCH_SIZE, output_prediction)
+        img_prediction = label_to_img(img.shape[0], img.shape[1],
+                                      IMG_PATCH_SIZE, IMG_PATCH_SIZE, output_prediction, binary)
 
         return img_prediction
 
     # Get a concatenation of the prediction and groundtruth for given input file
-    def get_prediction_with_groundtruth(filename, image_idx):
+    def get_prediction_with_groundtruth(filename, image_idx, binary=True):
 
         imageid = "satImage_%.3d" % image_idx
         image_filename = filename + imageid + ".png"
         img = mpimg.imread(image_filename)
 
-        img_prediction = get_prediction(img)
+        img_prediction = get_prediction(img, binary)
         cimg = concatenate_images(img, img_prediction)
 
         return cimg
 
     # Get prediction overlaid on the original image for given input file
-    def get_prediction_with_overlay(filename, image_idx):
+    def get_prediction_with_overlay(filename, image_idx, binary=True):
 
         imageid = "satImage_%.3d" % image_idx
         image_filename = filename + imageid + ".png"
         img = mpimg.imread(image_filename)
 
-        img_prediction = get_prediction(img)
+        img_prediction = get_prediction(img, binary)
         oimg = make_img_overlay(img, img_prediction)
 
         return oimg
@@ -462,6 +466,8 @@ def main(argv=None):  # pylint: disable=unused-argument
                 # Permute training indices
                 perm_indices = numpy.random.permutation(training_indices)
 
+                mean_loss = []
+
                 for step in range(int(train_size / BATCH_SIZE)):
 
                     offset = (step * BATCH_SIZE) % (train_size - BATCH_SIZE)
@@ -476,21 +482,15 @@ def main(argv=None):  # pylint: disable=unused-argument
                     feed_dict = {train_data_node: batch_data,
                                  train_labels_node: batch_labels}
 
-                    if step % RECORDING_STEP == 0:
-
+                    if step == int(train_size / BATCH_SIZE) - 1:
                         summary_str, _, l, lr, predictions = s.run(
                             [summary_op, optimizer, loss, learning_rate, train_prediction],
                             feed_dict=feed_dict)
                         # summary_str = s.run(summary_op, feed_dict=feed_dict)
-                        summary_writer.add_summary(summary_str, step)
+                        summary_writer.add_summary(summary_str, iepoch)
                         summary_writer.flush()
 
-                        # print_predictions(predictions, batch_labels)
-
-                        print('Epoch %.2f' % (float(step) * BATCH_SIZE / train_size))
-                        print('Minibatch loss: %.3f, learning rate: %.6f' % (l, lr))
-                        print('Minibatch error: %.1f%%' % error_rate(predictions,
-                                                                     batch_labels))
+                        # print_predictions(predictions, batch_labels
 
                         sys.stdout.flush()
                     else:
@@ -499,9 +499,15 @@ def main(argv=None):  # pylint: disable=unused-argument
                             [optimizer, loss, learning_rate, train_prediction],
                             feed_dict=feed_dict)
 
-                # Save the variables to disk.
-                save_path = saver.save(s, FLAGS.train_dir + "/model.ckpt")
-                print("Model saved in file: %s" % save_path)
+                        mean_loss.append(l)
+
+                # Run predictions on validation set
+                print("Epoch {} \t Mean training loss: {}".format(iepoch, numpy.array(mean_loss).mean()))
+
+                if iepoch != 0 and iepoch % 10 == 0:
+                    # Save the variables to disk.
+                    save_path = saver.save(s, FLAGS.train_dir + "/model.ckpt")
+                    print("Model saved in file: %s" % save_path)
 
         if PREDICT_TRAINING:
             print("Running prediction on training set")
@@ -515,11 +521,37 @@ def main(argv=None):  # pylint: disable=unused-argument
                 oimg.save(prediction_training_dir + "overlay_" + str(i) + ".png")
         else:
             print("Running prediction on test set")
+            test_dir = 'test/'
+            last_test_label = 223
+
             prediction_test_dir = "predictions_test/"
             if not os.path.isdir(prediction_test_dir):
                 os.mkdir(prediction_test_dir)
 
+            for i in range(1, 224):
+                filename = "test/test_" + str(i) + ".png"
+                if not os.path.isfile(filename):
+                    continue
+                print("Loading image {}".format(filename))
 
+                # Only prediction
+                img = mpimg.imread(filename)
+                test_prediction = get_prediction(img, binary=False)
+                img8 = img_float_to_uint8(test_prediction)
+                image = Image.fromarray(img8, 'L')
+                image.save(
+                    prediction_test_dir + "test_prediction_" + str(i) + ".png")
+
+                # Overlay image
+                overlay_img = make_img_overlay(img, test_prediction)
+                overlay_img.save(
+                    prediction_test_dir + "test_overlay_" + str(i) + ".png")
+
+                # Side by side
+                concat_img = concatenate_images(img, test_prediction)
+                Image.fromarray(concat_img).save(
+                    prediction_test_dir + "test_concat_" + str(i) + ".png"
+                )
 
 
 if __name__ == '__main__':
