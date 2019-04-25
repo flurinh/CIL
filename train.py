@@ -91,7 +91,7 @@ for n in range(NUMBER_EPOCHS):
     writer.add_scalar('Validation Loss', float(val_loss), n)
 
     if val_loss < best_val:
-        writer.add_graph("Best Model", model, dummy_input)
+        writer.add_graph(LOG_NAME, model, dummy_input)
         torch.save(model, 'models/'+LOG_NAME+'.pt')
         best_val = val_loss
 
