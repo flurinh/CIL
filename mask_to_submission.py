@@ -37,15 +37,16 @@ def masks_to_submission(submission_filename, *image_filenames):
 
 
 if __name__ == '__main__':
-    submission_filename = 'dummy_submission.csv'
-    prediction_directory = "predictions_test"
+    print(os.getcwd())
+    submission_filename = 'baseline_stupid.csv'
+    prediction_directory = "testresults/"
 
     if not os.path.isdir(prediction_directory):
         print("No directory found. Run the predictions first")
 
     image_filenames = []
     for i in range(1, 244):
-        filename = prediction_directory + "/test_prediction_" + str(i) + ".png"
+        filename = prediction_directory + "/prediction" + str(i) + ".png"
         if not os.path.isfile(filename):
             continue
         image_filenames.append(filename)
