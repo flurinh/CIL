@@ -13,6 +13,7 @@ writer = SummaryWriter('logdir/exp-1')
 
 LEARNING_RATE = 1e-3
 BATCH_SIZE = 1
+NUMBER_EPOCHS = 1000
 
 seed = 42
 np.random.seed(seed)
@@ -40,7 +41,6 @@ model_parameters = filter(lambda p: p.requires_grad, model.parameters())
 params = sum([np.prod(p.size()) for p in model_parameters])
 print("number of trainable paramters in model:", params)
 
-number_of_epochs = 3
 test_indices = []
 mean_losses = []
 figure = plt.figure()
@@ -48,7 +48,7 @@ best_val = np.inf
 
 dummy_input = (torch.zeros(3, 400, 400),)
 
-for n in range(number_of_epochs):
+for n in range(NUMBER_EPOCHS):
     [training_data, val_data, test_data, test_indices] = create_batches(data, test_indices, batch_size=BATCH_SIZE)
     print("Starting Epoch:\t", n)
     losses = []
@@ -80,17 +80,17 @@ for n in range(number_of_epochs):
         torch.save(model, 'models/best.pt')
         best_val = val_loss
 
-print("Done Training -- Starting Evaluation")
-for i_batch, batch in enumerate(test_data):
-    if i_batch > 1:
-        break
-    inputs = batch['input']
-    outputs = model(inputs)
-    groundtruth = batch['target']
-    outputs = outputs.cpu()
-    outputs = outputs[0].view((400, 400)).detach().numpy()
-    print(outputs)
-    outputs = [[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs]
-    print(outputs)
-    print(groundtruth.cpu())
-    evaluation_side_by_side_plot(inputs.cpu(), outputs, groundtruth.cpu())
+# print("Done Training -- Starting Evaluation")
+# for i_batch, batch in enumerate(test_data):
+#     if i_batch > 1:
+#         break
+#     inputs = batch['input']
+#     outputs = model(inputs)
+#     groundtruth = batch['target']
+#     outputs = outputs.cpu()
+#     outputs = outputs[0].view((400, 400)).detach().numpy()
+#     print(outputs)
+#     outputs = [[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs]
+#     print(outputs)
+#     print(groundtruth.cpu())
+#     evaluation_side_by_side_plot(inputs.cpu(), outputs, groundtruth.cpu())

@@ -26,10 +26,9 @@ for i_batch, batch in enumerate(training_data):
     outputs = model(inputs)
     outputs = outputs.cpu()
     outputs = outputs[0].view((400, 400)).detach().numpy()
-    outputs = [[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs]
+    print(outputs)
+    outputs = [[0. if pixel < 0.5 else 255. for pixel in row] for row in outputs]
     outputs = np.asarray(outputs)
     print(outputs)
     out_image = Image.fromarray(outputs)
-    out_image.show()
     out_image.convert('RGB').save('output_images/'+str(i_batch).zfill(5)+".png")
-    break
