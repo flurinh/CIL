@@ -4,13 +4,14 @@ from DataWrapper import *
 from torch.utils.data import  DataLoader, SubsetRandomSampler
 import random
 import numpy as np
-
+from models import  *
+import torch.nn as nn
+import torch.optim
 seed = 42
 np.random.seed(seed)
 torch.manual_seed(seed)
 
-if print(torch.cuda.is_available()) is False:
-    print("CUDA unavailable, using CPU!")
+
 
 input_dir = 'train_augmented/input/'
 target_dir = 'train_augmented/target/'
@@ -31,5 +32,20 @@ training_data = DataLoader(data, shuffle=False, batch_size=10, num_workers=4, sa
 eval_data = DataLoader(data, shuffle=False, batch_size=1, num_workers=4, sampler=SubsetRandomSampler(eval_indices))
 test_data = DataLoader(data, shuffle=False, batch_size=1, num_workers=4, sampler=SubsetRandomSampler(test_indices))
 
+model = SimpleCNN()
+# if print(torch.cuda.is_available()) is False:
+#     print("CUDA unavailable, using CPU!")
+# else:
+#     model.cuda()
+
+criterion = nn.MSELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-2, weight_decay=0.0)
+
 for i_batch, batch in enumerate(training_data):
     print(i_batch, batch['input'].size(), batch['target'].size())
+    # get the inputs
+    inputs = batch['input']
+    # zero the parameter gradients
+    optimizer.zero_grad()
+    outputs = model(inputs)
+    print(outputs.size())

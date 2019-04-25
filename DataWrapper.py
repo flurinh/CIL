@@ -21,24 +21,26 @@ class DataWrapper(Dataset):
             # numpy image: H x W x C
             # torch image: C X H X W
             image = image.transpose((2, 0, 1))
-            return torch.from_numpy(image)
+            torch_image = torch.from_numpy(image).type(torch.FloatTensor)
+            return torch_image
+
+        def toTensorBW(image):
+            # TODO: check whether the reshaping goes actually correct
+            torch_image = torch.from_numpy(image).view(400, 400, 1)
+            torch_image = torch_image.permute((2, 0, 1))
+            return torch_image.type(torch.FloatTensor)
 
         input_img_name = os.path.join(self.input_dir, str(idx).zfill(5) + '.png')
         input_image = io.imread(input_img_name)
         target_img_name = os.path.join(self.target_dir, str(idx).zfill(5) + '.png')
         target_image = io.imread(target_img_name)
-        sample = {'input': toTensorRGB(input_image), 'target': torch.from_numpy(target_image)}
+        sample = {'input': toTensorRGB(input_image), 'target': toTensorBW(target_image)}
         return sample
 
-# input_dir = 'train_augmented/input/'
-# target_dir = 'train_augmented/target/'
-#
-# data=Data(input_dir, target_dir)
-#
-# print(len(data))
-# print(data[0]['target'])
-# plt.imshow(data[0]['target'])
-# plt.show()
-# for i in range(len(data)):
-#     sample = data[i]
-#     print(i, sample['input'].shape, sample['target'].shape)
+
+input_dir = 'train_augmented/input/'
+target_dir = 'train_augmented/target/'
+data = DataWrapper(input_dir, target_dir)
+for i in range(len(data)):
+    sample = data[i]
+    print(i, sample['input'].shape, sample['target'].shape)
