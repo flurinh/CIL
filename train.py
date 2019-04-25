@@ -33,6 +33,11 @@ optimizer = torch.optim.SGD(model.parameters(),
                                   lr=LEARNING_RATE,
                                   momentum=0.9,
                                   weight_decay=0.0005)
+
+model_parameters = filter(lambda p: p.requires_grad, model.parameters())
+params = sum([np.prod(p.size()) for p in model_parameters])
+print("number of trainable paramters in model:", params)
+
 number_of_epochs = 3
 test_indices = []
 mean_losses = []
@@ -57,6 +62,14 @@ for n in range(number_of_epochs):
     plt.plot(mean_losses)
     plt.show()
     plt.pause(0.01)
+
+    val_loss = 0
+    for i_batch, batch in enumerate(val_data):
+        inputs = batch['input']
+        outputs = model(inputs)
+        loss = criterion(outputs, batch['target'])
+        val_loss += loss
+    val_loss /= len(val_data)
 
 print("Done Training -- Starting Evaluation")
 for i_batch, batch in enumerate(test_data):
