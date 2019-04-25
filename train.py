@@ -67,12 +67,12 @@ for n in range(NUMBER_EPOCHS):
         if i_batch % 100 == 0:
             print("Epoch:\t", n, "\t Batch:\t", i_batch, "\tof\t", len(training_data))
         losses.append(loss.cpu().detach().numpy())
-    training_data.cpu()
+        batch.cpu()
     writer.add_scalar('Training Loss', float(np.mean(losses)), n)
     with torch.no_grad():
         val_loss = 0
         for i_batch, batch in enumerate(val_data):
-            model.eval()
+            # model.eval()
             inputs = batch['input']
             print(inputs.size())
             outputs = model(inputs)
@@ -80,7 +80,7 @@ for n in range(NUMBER_EPOCHS):
             val_loss += loss.cpu().detach().numpy()
 
     val_loss /= len(val_data)
-    writer.add_scalar('Validation Loss', val_loss, n)
+    writer.add_scalar('Validation Loss', float(val_loss), n)
 
     if val_loss < best_val:
         writer.add_graph("Best Model", model, dummy_input)
