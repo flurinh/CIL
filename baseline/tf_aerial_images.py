@@ -194,6 +194,9 @@ def make_img_overlay(img, predicted_img):
 
 def main(argv=None):  # pylint: disable=unused-argument
 
+    if not os.path.isdir("models"):
+        os.mkdir("models")
+
     data_dir = '../training/'
     train_data_filename = data_dir + 'images/'
     train_labels_filename = data_dir + 'groundtruth/'
