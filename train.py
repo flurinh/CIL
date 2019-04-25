@@ -72,7 +72,7 @@ for n in range(NUMBER_EPOCHS):
     with torch.no_grad():
         val_loss = 0
         for i_batch, batch in enumerate(val_data):
-            # model.eval()
+            model.eval()
             inputs = batch['input']
             print(inputs.size())
             outputs = model(inputs)
