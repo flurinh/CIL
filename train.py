@@ -8,13 +8,14 @@ import torch.nn as nn
 import torch.optim
 from plotter_helper import *
 from tensorboardX import SummaryWriter
+import sys
 from skimage import io
 
 writer = SummaryWriter('logdir/exp-1')
 
-LEARNING_RATE = 1e-3
-BATCH_SIZE = 1
-NUMBER_EPOCHS = 1000
+LEARNING_RATE = float(sys.argv[1])
+BATCH_SIZE = int(sys.argv[2])
+NUMBER_EPOCHS = int(sys.argv[3])
 
 seed = 42
 np.random.seed(seed)
@@ -59,6 +60,7 @@ for n in range(NUMBER_EPOCHS):
     model.train()
     for i_batch, batch in enumerate(training_data):
         optimizer.zero_grad()
+        model.eval()
         inputs = batch['input']
         outputs = model(inputs)
         loss = criterion(outputs, batch['target'])
@@ -76,8 +78,12 @@ for n in range(NUMBER_EPOCHS):
             inputs = batch['input']
             print(inputs.size())
             outputs = model(inputs)
-            loss = criterion(outputs, batch['target'])
-            val_loss += loss.cpu().detach().numpy()
+            outputs = outputs[0].view((400, 400)).detach().numpy()
+            outputs = [[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs]
+            diff = outputs - batch['target']
+            squared = np.square(diff)
+            accuracy = squared/diff.size()
+            val_loss += accuracy
 
     val_loss /= len(val_data)
     writer.add_scalar('Validation Loss', float(val_loss), n)
