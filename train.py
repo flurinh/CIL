@@ -40,12 +40,15 @@ model = SimpleCNN()
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-2, weight_decay=0.0)
-
-for i_batch, batch in enumerate(training_data):
-    print(i_batch, batch['input'].size(), batch['target'].size())
-    # get the inputs
-    inputs = batch['input']
-    # zero the parameter gradients
-    optimizer.zero_grad()
-    outputs = model(inputs)
-    print(outputs.size())
+number_of_epochs = 100
+for n in range(number_of_epochs):
+    for i_batch, batch in enumerate(training_data):
+        print(i_batch, batch['input'].size(), batch['target'].size())
+        # get the inputs
+        input = batch['input']
+        # zero the parameter gradients
+        optimizer.zero_grad()
+        output = model(input)
+        loss= criterion(batch['target'], output)
+        loss.backward()
+        optimizer.step()
