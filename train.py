@@ -54,8 +54,8 @@ dummy_input = (torch.zeros(3, 400, 400),)
 
 for n in range(NUMBER_EPOCHS):
     [training_data, val_data, test_data, test_indices] = create_batches(data, test_indices, batch_size=BATCH_SIZE)
-    for i, entry in enumerate(val_data):
-        print(i)
+    for i, batch in enumerate(val_data):
+        batch['target'].cpu().view((400, 400)).detach().numpy()
 
     print("Starting Epoch:\t", n)
     losses = []
@@ -81,8 +81,8 @@ for n in range(NUMBER_EPOCHS):
             print(inputs.size())
             outputs = model(inputs)
             outputs = outputs[0].cpu().view((400, 400)).detach().numpy()
-            outputs = [[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs]
-            diff = outputs - batch['target']
+            outputs = np.asarray([[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs])
+            diff = outputs - batch['target'].cpu().view((400, 400)).detach().numpy()
             squared = np.square(diff)
             accuracy = squared/diff.size()
             val_loss += accuracy
