@@ -67,14 +67,15 @@ for n in range(NUMBER_EPOCHS):
         losses.append(loss.cpu().detach().numpy())
 
     writer.add_scalar('Training Loss', float(np.mean(losses)), n)
-    val_loss = 0
-    for i_batch, batch in enumerate(val_data):
-        model.eval()
-        inputs = batch['input']
-        print(inputs.size())
-        outputs = model(inputs)
-        loss = criterion(outputs, batch['target'])
-        val_loss += loss.cpu().detach().numpy()
+    with torch.no_grad():
+        val_loss = 0
+        for i_batch, batch in enumerate(val_data):
+            model.eval()
+            inputs = batch['input']
+            print(inputs.size())
+            outputs = model(inputs)
+            loss = criterion(outputs, batch['target'])
+            val_loss += loss.cpu().detach().numpy()
 
     val_loss /= len(val_data)
     writer.add_scalar('Validation Loss', val_loss, n)
