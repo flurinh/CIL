@@ -8,17 +8,17 @@ class SimpleCNN(nn.Module):
 
         super(SimpleCNN, self).__init__()
         self.encoder = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3, stride=1, padding=2),
             nn.ReLU(True),
             nn.MaxPool2d(2, stride=1),
-            nn.Conv2d(16, 8, 3, stride=1, padding=1),
+            nn.Conv2d(16, 8, 3, stride=1, padding=2),
             nn.ReLU(True),
             nn.MaxPool2d(2, stride=1)
         )
         self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(8, 16, 3, stride=1, padding=1),
+            nn.ConvTranspose2d(8, 16, 3, stride=1, padding=2),
             nn.ReLU(True),
-            nn.ConvTranspose2d(16, 8, 5, stride=1, padding=1),
+            nn.ConvTranspose2d(16, 8, 5, stride=1, padding=2),
             nn.ReLU(True),
             nn.ConvTranspose2d(8, 1, 1),
             nn.Tanh()

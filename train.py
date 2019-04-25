@@ -1,17 +1,17 @@
 import torch
 import tensorboardX
 from DataWrapper import *
-from torch.utils.data import  DataLoader, SubsetRandomSampler
+from torch.utils.data import DataLoader, SubsetRandomSampler
 import random
 import numpy as np
-from models import  *
+from models import *
 import torch.nn as nn
 import torch.optim
+from plotter_helper import  *
+
 seed = 42
 np.random.seed(seed)
 torch.manual_seed(seed)
-
-
 
 input_dir = 'train_augmented/input/'
 target_dir = 'train_augmented/target/'
@@ -28,29 +28,37 @@ test_indices = indices_3
 assert len(training_indices) + len(test_indices) + len(eval_indices) == len(data), "Not all data is used!"
 
 # create batches, shuffle needs to be false because we use the sampler.
-training_data = DataLoader(data, shuffle=False, batch_size=10, num_workers=4, sampler=SubsetRandomSampler(training_indices))
+training_data = DataLoader(data, shuffle=False, batch_size=10, num_workers=4,
+                           sampler=SubsetRandomSampler(training_indices))
 eval_data = DataLoader(data, shuffle=False, batch_size=1, num_workers=4, sampler=SubsetRandomSampler(eval_indices))
 test_data = DataLoader(data, shuffle=False, batch_size=1, num_workers=4, sampler=SubsetRandomSampler(test_indices))
 
 model = SimpleCNN()
-# if print(torch.cuda.is_available()) is False:
-#     print("CUDA unavailable, using CPU!")
-# else:
-#     model.cuda()
+if print(torch.cuda.is_available()) == False:
+    print("CUDA unavailable, using CPU!")
+else:
+    model.cuda()
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-2, weight_decay=0.0)
-number_of_epochs = 100
+number_of_epochs = 1
 
 for n in range(number_of_epochs):
-    print("Epoch:\t", n)
+    print("Starting Epoch:\t", n)
     for i_batch, batch in enumerate(training_data):
-        # get the inputs
-        input = batch['input']
-
-        # zero the parameter gradients
-        optimizer.zero_grad()
-        output = model(input)
-        loss= criterion(batch['target'], output)
+        inputs = batch['input']
+        outputs = model(inputs)
+        loss = criterion(batch['target'], outputs)
         loss.backward()
+        optimizer.zero_grad()
         optimizer.step()
+        print("Epoch:\t", n, "\t Batch:\t", i_batch, "\tof\t", len(training_data))
+
+print("Done Training -- Starting Evaluation")
+for i_batch, batch in enumerate(test_data):
+    if i_batch > 1:
+        break
+    inputs = batch['input']
+    outputs = model(inputs)
+    groundtruth = batch['target']
+    evaluation_side_by_side_plot(inputs, outputs, groundtruth)

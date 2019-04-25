@@ -25,7 +25,6 @@ class DataWrapper(Dataset):
             return torch_image
 
         def toTensorBW(image):
-            # TODO: check whether the reshaping goes actually correct
             torch_image = torch.from_numpy(image).view(400, 400, 1)
             torch_image = torch_image.permute((2, 0, 1))
             return torch_image.type(torch.FloatTensor)
@@ -38,9 +37,9 @@ class DataWrapper(Dataset):
         return sample
 
 
-input_dir = 'train_augmented/input/'
-target_dir = 'train_augmented/target/'
-data = DataWrapper(input_dir, target_dir)
-for i in range(len(data)):
-    sample = data[i]
-    print(i, sample['input'].shape, sample['target'].shape)
+# input_dir = 'train_augmented/input/'
+# target_dir = 'train_augmented/target/'
+# data = DataWrapper(input_dir, target_dir)
+# for i in range(len(data)):
+#     sample = data[i]
+#     print(i, sample['input'].shape, sample['target'].shape)
