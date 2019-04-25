@@ -10,6 +10,7 @@ import matplotlib.image as mpimg
 import numpy
 import tensorflow as tf
 from PIL import Image
+from plotter_helper import evaluation_side_by_side_plot_np
 
 NUM_CHANNELS = 3  # RGB images
 PIXEL_DEPTH = 255
@@ -19,7 +20,7 @@ VALIDATION_SIZE = 20  # Size of the validation set.
 SEED = 66478  # Set to None for random seed.
 BATCH_SIZE = 16 # 64
 NUM_EPOCHS = 100
-RESTORE_MODEL = False # If True, restore existing model instead of training a new one
+RESTORE_MODEL = True # If True, restore existing model instead of training a new one
 RECORDING_STEP = 1000
 PREDICT_TRAINING = False
 PREDICT_VALIDATION = True
@@ -30,7 +31,7 @@ PREDICT_TEST = False
 # image size should be an integer multiple of this number!
 IMG_PATCH_SIZE = 16
 
-tf.app.flags.DEFINE_string('train_dir', 'models',
+tf.app.flags.DEFINE_string('train_dir', 'models/100episodes',
                            """Directory where to write event logs """
                            """and checkpoint.""")
 FLAGS = tf.app.flags.FLAGS
@@ -477,6 +478,9 @@ def main(argv=None):  # pylint: disable=unused-argument
             # Loop through training steps.
             print('Total number of iterations = ' + str(int(num_epochs * train_size / BATCH_SIZE)))
 
+            print("Number of trainable parameters: {}".format(
+                numpy.sum([numpy.prod(v.get_shape().as_list()) for v in tf.trainable_variables()])))
+
             training_indices = range(train_size)
             val_indices = range(validation_size)
 
@@ -514,8 +518,8 @@ def main(argv=None):  # pylint: disable=unused-argument
                     offset = (step * BATCH_SIZE) % (train_size - BATCH_SIZE)
                     batch_indices = val_indices[offset:(offset + BATCH_SIZE)]
 
-                    batch_data = train_data[batch_indices, :, :, :]
-                    batch_labels = train_labels[batch_indices]
+                    batch_data = validation_data[batch_indices, :, :, :]
+                    batch_labels = validation_labels[batch_indices]
 
                     feed_dict = {train_data_node: batch_data,
                                  train_labels_node: batch_labels}
@@ -551,7 +555,24 @@ def main(argv=None):  # pylint: disable=unused-argument
                 oimg = get_prediction_with_overlay(train_data_filename, i)
                 oimg.save(prediction_training_dir + "overlay_" + str(i) + ".png")
         if PREDICT_VALIDATION:
-            pass
+            for i in validation_indices:
+                imageid = "satImage_%.3d" % i
+                image_filename = train_data_filename + imageid + ".png"
+                img = mpimg.imread(image_filename)
+
+                label_filename = train_labels_filename + imageid + ".png"
+                label = mpimg.imread(label_filename)
+
+                prediction = get_prediction(img, binary=True)
+                img8 = img_float_to_uint8(1 - prediction)
+                pred = Image.fromarray(img8, 'L')
+
+                plot_location = "predictions_validation/"
+                if not os.path.isdir(plot_location):
+                    os.mkdir(plot_location)
+
+                evaluation_side_by_side_plot_np(img, pred, label, True, plot_location + "prediction_validation_"+ str(i) + ".png")
+
         if PREDICT_TEST:
             print("Running prediction on test set")
             test_dir = 'test/'
