@@ -8,6 +8,7 @@ import torch.nn as nn
 import torch.optim
 from plotter_helper import *
 from tensorboardX import SummaryWriter
+
 writer = SummaryWriter('logdir/exp-1')
 
 LEARNING_RATE = 1e-3
@@ -32,9 +33,9 @@ else:
 
 criterion = nn.BCELoss()
 optimizer = torch.optim.SGD(model.parameters(),
-                                  lr=LEARNING_RATE,
-                                  momentum=0.9,
-                                  weight_decay=0.0005)
+                            lr=LEARNING_RATE,
+                            momentum=0.9,
+                            weight_decay=0.0005)
 
 model_parameters = filter(lambda p: p.requires_grad, model.parameters())
 params = sum([np.prod(p.size()) for p in model_parameters])
@@ -49,6 +50,9 @@ dummy_input = (torch.zeros(3, 400, 400),)
 
 for n in range(NUMBER_EPOCHS):
     [training_data, val_data, test_data, test_indices] = create_batches(data, test_indices, batch_size=BATCH_SIZE)
+    for i, entry in enumerate(val_data):
+        print(i)
+
     print("Starting Epoch:\t", n)
     losses = []
     model.train()
@@ -67,6 +71,7 @@ for n in range(NUMBER_EPOCHS):
     for i_batch, batch in enumerate(val_data):
         model.eval()
         inputs = batch['input']
+        print(inputs.size())
         outputs = model(inputs)
         loss = criterion(outputs, batch['target'])
         val_loss += loss
