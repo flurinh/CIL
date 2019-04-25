@@ -11,11 +11,13 @@ from tensorboardX import SummaryWriter
 import sys
 from skimage import io
 
-writer = SummaryWriter('logdir/exp-1')
 
 LEARNING_RATE = float(sys.argv[1])
 BATCH_SIZE = int(sys.argv[2])
 NUMBER_EPOCHS = int(sys.argv[3])
+LOG_NAME = str(sys.argv[4])
+
+writer = SummaryWriter('logdir/'+LOG_NAME)
 
 seed = 42
 np.random.seed(seed)
