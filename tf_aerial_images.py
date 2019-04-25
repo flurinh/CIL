@@ -21,14 +21,14 @@ BATCH_SIZE = 16 # 64
 NUM_EPOCHS = 100
 RESTORE_MODEL = True  # If True, restore existing model instead of training a new one
 RECORDING_STEP = 1000
-PREDICT_TRAINING = True
+PREDICT_TRAINING = False
 
 # Set image patch size in pixels
 # IMG_PATCH_SIZE should be a multiple of 4
 # image size should be an integer multiple of this number!
 IMG_PATCH_SIZE = 16
 
-tf.app.flags.DEFINE_string('train_dir', '/models',
+tf.app.flags.DEFINE_string('train_dir', 'models',
                            """Directory where to write event logs """
                            """and checkpoint.""")
 FLAGS = tf.app.flags.FLAGS
@@ -136,15 +136,18 @@ def print_predictions(predictions, labels):
 
 
 # Convert array of labels to an image
-def label_to_img(imgwidth, imgheight, w, h, labels):
+def label_to_img(imgwidth, imgheight, w, h, labels, binary=True):
     array_labels = numpy.zeros([imgwidth, imgheight])
     idx = 0
     for i in range(0, imgheight, h):
         for j in range(0, imgwidth, w):
-            if labels[idx][0] > 0.5:
-                l = 1
+            if binary:
+                if labels[idx][0] > 0.5:
+                    l = 1
+                else:
+                    l = 0
             else:
-                l = 0
+                l = labels[idx][0]
             array_labels[j:j + w, i:i + h] = l
             idx = idx + 1
     return array_labels
@@ -287,35 +290,36 @@ def main(argv=None):  # pylint: disable=unused-argument
         return V
 
     # Get prediction for given input image 
-    def get_prediction(img):
+    def get_prediction(img, binary=True):
         data = numpy.asarray(img_crop(img, IMG_PATCH_SIZE, IMG_PATCH_SIZE))
         data_node = tf.constant(data)
         output = tf.nn.softmax(model(data_node))
         output_prediction = s.run(output)
-        img_prediction = label_to_img(img.shape[0], img.shape[1], IMG_PATCH_SIZE, IMG_PATCH_SIZE, output_prediction)
+        img_prediction = label_to_img(img.shape[0], img.shape[1],
+                                      IMG_PATCH_SIZE, IMG_PATCH_SIZE, output_prediction, binary)
 
         return img_prediction
 
     # Get a concatenation of the prediction and groundtruth for given input file
-    def get_prediction_with_groundtruth(filename, image_idx):
+    def get_prediction_with_groundtruth(filename, image_idx, binary=True):
 
         imageid = "satImage_%.3d" % image_idx
         image_filename = filename + imageid + ".png"
         img = mpimg.imread(image_filename)
 
-        img_prediction = get_prediction(img)
+        img_prediction = get_prediction(img, binary)
         cimg = concatenate_images(img, img_prediction)
 
         return cimg
 
     # Get prediction overlaid on the original image for given input file
-    def get_prediction_with_overlay(filename, image_idx):
+    def get_prediction_with_overlay(filename, image_idx, binary=True):
 
         imageid = "satImage_%.3d" % image_idx
         image_filename = filename + imageid + ".png"
         img = mpimg.imread(image_filename)
 
-        img_prediction = get_prediction(img)
+        img_prediction = get_prediction(img, binary)
         oimg = make_img_overlay(img, img_prediction)
 
         return oimg
@@ -532,7 +536,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
                 # Only prediction
                 img = mpimg.imread(filename)
-                test_prediction = get_prediction(img)
+                test_prediction = get_prediction(img, binary=False)
                 img8 = img_float_to_uint8(test_prediction)
                 image = Image.fromarray(img8, 'L')
                 image.save(
