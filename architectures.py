@@ -21,7 +21,7 @@ class SimpleCNN(nn.Module):
             nn.ConvTranspose2d(16, 8, 5, stride=1, padding=2),
             nn.ReLU(True),
             nn.ConvTranspose2d(8, 1, 1),
-            nn.Tanh()
+            nn.Sigmoid()
         )
 
     def forward(self, x):

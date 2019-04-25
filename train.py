@@ -7,30 +7,16 @@ import numpy as np
 from architectures import *
 import torch.nn as nn
 import torch.optim
-from plotter_helper import  *
+from plotter_helper import *
 
 seed = 42
-np.random.seed(seed)
+# np.random.seed(seed)
 torch.manual_seed(seed)
 
 input_dir = 'train_augmented/input/'
 target_dir = 'train_augmented/target/'
 
 data = DataWrapper(input_dir, target_dir, torch.cuda.is_available())
-
-# generate indices for creating train, eval and test set.
-indices = range(len(data))
-training_indices = random.sample(indices, k=int(0.6 * len(data)))
-indices_2 = [x for x in indices if x not in training_indices]
-eval_indices = random.sample(indices_2, k=int(0.2 * len(data)))
-indices_3 = [x for x in indices_2 if x not in eval_indices]
-test_indices = indices_3
-assert len(training_indices) + len(test_indices) + len(eval_indices) == len(data), "Not all data is used!"
-
-# create batches, shuffle needs to be false because we use the sampler.
-training_data = DataLoader(data, shuffle=False, batch_size=10, sampler=SubsetRandomSampler(training_indices))
-eval_data = DataLoader(data, shuffle=False, batch_size=1, sampler=SubsetRandomSampler(eval_indices))
-test_data = DataLoader(data, shuffle=False, batch_size=1, sampler=SubsetRandomSampler(test_indices))
 
 model = SimpleCNN()
 if torch.cuda.is_available():
@@ -40,10 +26,11 @@ else:
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-2, weight_decay=0.0)
-number_of_epochs = 100
-
+number_of_epochs = 10
+[training_data, val_data, test_data] = create_batches(data)
 for n in range(number_of_epochs):
     print("Starting Epoch:\t", n)
+
     for i_batch, batch in enumerate(training_data):
         inputs = batch['input']
         outputs = model(inputs)
@@ -60,4 +47,7 @@ for i_batch, batch in enumerate(test_data):
     inputs = batch['input']
     outputs = model(inputs)
     groundtruth = batch['target']
-    evaluation_side_by_side_plot(inputs.cpu(), outputs.cpu(), groundtruth.cpu())
+    outputs = outputs.cpu()
+    outputs = outputs[0].view((400, 400)).detach().numpy()
+    outputs = [[0 if pixel < 0.5 else 1 for pixel in row] for row in outputs]
+    evaluation_side_by_side_plot(inputs.cpu(), outputs, groundtruth.cpu())
