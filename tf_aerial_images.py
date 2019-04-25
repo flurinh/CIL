@@ -19,9 +19,11 @@ VALIDATION_SIZE = 20  # Size of the validation set.
 SEED = 66478  # Set to None for random seed.
 BATCH_SIZE = 16 # 64
 NUM_EPOCHS = 100
-RESTORE_MODEL = True  # If True, restore existing model instead of training a new one
+RESTORE_MODEL = False # If True, restore existing model instead of training a new one
 RECORDING_STEP = 1000
 PREDICT_TRAINING = False
+PREDICT_VALIDATION = True
+PREDICT_TEST = False
 
 # Set image patch size in pixels
 # IMG_PATCH_SIZE should be a multiple of 4
@@ -50,12 +52,12 @@ def img_crop(im, w, h):
     return list_patches
 
 
-def extract_data(filename, num_images):
+def extract_data(filename, indices):
     """Extract the images into a 4D tensor [image index, y, x, channels].
     Values are rescaled from [0, 255] down to [-0.5, 0.5].
     """
     imgs = []
-    for i in range(1, num_images + 1):
+    for i in indices:
         imageid = "satImage_%.3d" % i
         image_filename = filename + imageid + ".png"
         if os.path.isfile(image_filename):
@@ -87,10 +89,10 @@ def value_to_class(v):
 
 
 # Extract label images
-def extract_labels(filename, num_images):
+def extract_labels(filename, indices):
     """Extract the labels into a 1-hot matrix [image index, label index]."""
     gt_imgs = []
-    for i in range(1, num_images + 1):
+    for i in indices:
         imageid = "satImage_%.3d" % i
         image_filename = filename + imageid + ".png"
         if os.path.isfile(image_filename):
@@ -195,9 +197,17 @@ def main(argv=None):  # pylint: disable=unused-argument
     train_data_filename = data_dir + 'images/'
     train_labels_filename = data_dir + 'groundtruth/'
 
+    train_indices = list(range(1, TRAINING_SIZE + 1))
+    validation_indices = list(range(TRAINING_SIZE + 1, TRAINING_SIZE + VALIDATION_SIZE + 1))
+
     # Extract it into numpy arrays.
-    train_data = extract_data(train_data_filename, TRAINING_SIZE)
-    train_labels = extract_labels(train_labels_filename, TRAINING_SIZE)
+    train_data = extract_data(train_data_filename, train_indices)
+    train_labels = extract_labels(train_labels_filename, train_indices)
+
+    validation_data = extract_data(train_data_filename, validation_indices)
+    validation_labels = extract_labels(train_labels_filename, validation_indices)
+
+    validation_size = validation_labels.shape[0]
 
     num_epochs = NUM_EPOCHS
 
@@ -396,7 +406,6 @@ def main(argv=None):  # pylint: disable=unused-argument
     # print 'logits = ' + str(logits.get_shape()) + ' train_labels_node = ' + str(train_labels_node.get_shape())
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
         logits=logits, labels=train_labels_node))
-    tf.summary.scalar('loss', loss)
 
     all_params_node = [conv1_weights, conv1_biases, conv2_weights, conv2_biases, fc1_weights, fc1_biases, fc2_weights,
                        fc2_biases]
@@ -427,10 +436,19 @@ def main(argv=None):  # pylint: disable=unused-argument
         staircase=True)
     tf.summary.scalar('learning_rate', learning_rate)
 
+    with tf.name_scope('performance'):
+        tf_loss_ph = tf.placeholder(tf.float32, shape=None, name='loss_summary')
+        tf_loss_summary = tf.summary.scalar('loss', tf_loss_ph)
+
+        tf_error_ph = tf.placeholder(tf.float32, shape=None, name='error_summary')
+        tf_error_summary = tf.summary.scalar('error', tf_error_ph)
+
     # Use simple momentum for the optimization.
     optimizer = tf.train.MomentumOptimizer(learning_rate,
                                            0.0).minimize(loss,
                                                          global_step=batch)
+
+    performance_summaries = tf.summary.merge([tf_loss_summary, tf_error_summary])
 
     # Predictions for the minibatch, validation set and test set.
     train_prediction = tf.nn.softmax(logits)
@@ -460,6 +478,7 @@ def main(argv=None):  # pylint: disable=unused-argument
             print('Total number of iterations = ' + str(int(num_epochs * train_size / BATCH_SIZE)))
 
             training_indices = range(train_size)
+            val_indices = range(validation_size)
 
             for iepoch in range(num_epochs):
 
@@ -482,30 +501,42 @@ def main(argv=None):  # pylint: disable=unused-argument
                     feed_dict = {train_data_node: batch_data,
                                  train_labels_node: batch_labels}
 
-                    if step == int(train_size / BATCH_SIZE) - 1:
-                        summary_str, _, l, lr, predictions = s.run(
-                            [summary_op, optimizer, loss, learning_rate, train_prediction],
-                            feed_dict=feed_dict)
-                        # summary_str = s.run(summary_op, feed_dict=feed_dict)
-                        summary_writer.add_summary(summary_str, iepoch)
-                        summary_writer.flush()
+                    # Run the graph and fetch some of the nodes.
+                    _, l, lr, predictions = s.run(
+                        [optimizer, loss, learning_rate, train_prediction],
+                        feed_dict=feed_dict)
 
-                        # print_predictions(predictions, batch_labels
+                    mean_loss.append(l)
 
-                        sys.stdout.flush()
-                    else:
-                        # Run the graph and fetch some of the nodes.
-                        _, l, lr, predictions = s.run(
-                            [optimizer, loss, learning_rate, train_prediction],
-                            feed_dict=feed_dict)
+                # Run validation
+                mean_error = list()
+                for step in range(int(validation_size / BATCH_SIZE)):
+                    offset = (step * BATCH_SIZE) % (train_size - BATCH_SIZE)
+                    batch_indices = val_indices[offset:(offset + BATCH_SIZE)]
 
-                        mean_loss.append(l)
+                    batch_data = train_data[batch_indices, :, :, :]
+                    batch_labels = train_labels[batch_indices]
+
+                    feed_dict = {train_data_node: batch_data,
+                                 train_labels_node: batch_labels}
+
+                    predictions = s.run([train_prediction], feed_dict=feed_dict)
+                    mean_error.append(error_rate(predictions[0], batch_labels))
+
+                avg_loss = numpy.mean(mean_loss)
+                avg_error = numpy.mean(mean_error)
 
                 # Run predictions on validation set
-                print("Epoch {} \t Mean training loss: {}".format(iepoch, numpy.array(mean_loss).mean()))
+                print("Epoch {} \t Mean training loss: {} \t Mean validation loss: {}"
+                      .format(iepoch, numpy.array(mean_loss).mean(), numpy.array(mean_error).mean()))
 
+                summ = s.run(performance_summaries,
+                                   feed_dict={tf_loss_ph: avg_loss, tf_error_ph: avg_error})
+
+                summary_writer.add_summary(summ, iepoch)
+
+                # Save the variables to disk.
                 if iepoch != 0 and iepoch % 10 == 0:
-                    # Save the variables to disk.
                     save_path = saver.save(s, FLAGS.train_dir + "/model.ckpt")
                     print("Model saved in file: %s" % save_path)
 
@@ -519,7 +550,9 @@ def main(argv=None):  # pylint: disable=unused-argument
                 Image.fromarray(pimg).save(prediction_training_dir + "prediction_" + str(i) + ".png")
                 oimg = get_prediction_with_overlay(train_data_filename, i)
                 oimg.save(prediction_training_dir + "overlay_" + str(i) + ".png")
-        else:
+        if PREDICT_VALIDATION:
+            pass
+        if PREDICT_TEST:
             print("Running prediction on test set")
             test_dir = 'test/'
             last_test_label = 223
