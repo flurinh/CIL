@@ -34,7 +34,7 @@ if not os.path.isdir(prediction_test_dir):
     os.mkdir(prediction_test_dir)
 
 for i in range(1, 224):
-    filename = "../test/test_" + str(i) + ".png"
+    filename = "/test/test_" + str(i) + ".png"
     if not os.path.isfile(filename):
         continue
     print("Loading image {}".format(filename))
