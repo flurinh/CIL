@@ -33,7 +33,7 @@ class DataWrapper(Dataset):
             return torch_image/255.
 
         def toTensorBW(self, image):
-            torch_image = torch.from_numpy(image).view(400, 400, 1)
+            torch_image = torch.from_numpy(image).view(image.shape[0], image.shape[1], 1)
             torch_image = torch_image.permute((2, 0, 1))
 
             if self.cuda_available:

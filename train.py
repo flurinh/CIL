@@ -112,7 +112,6 @@ mean_losses = []
 figure = plt.figure()
 best_val = np.inf
 
-dummy_input = torch.zeros(1, 3, 400, 400)
 for n in range(NUMBER_EPOCHS):
     training_data = create_batches(train_data, batch_size=BATCH_SIZE)
     test_data = create_batches(val_data, batch_size=1)
@@ -141,9 +140,14 @@ for n in range(NUMBER_EPOCHS):
             inputs = batch['input']
             print(inputs.size())
             outputs = model(inputs)
-            outputs = outputs[0].cpu().view((400, 400)).detach().numpy()
+            if TRAIN_SET is 4:
+                outputs = outputs[0].cpu().view((608, 608)).detach().numpy()
+                ground = batch['target'].cpu().view((608, 608)).detach().numpy()
+            else:
+                outputs = outputs[0].cpu().view((400, 400)).detach().numpy()
+                ground = batch['target'].cpu().view((400, 400)).detach().numpy()
             outputs = np.asarray([[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs])
-            diff = outputs - batch['target'].cpu().view((400, 400)).detach().numpy()
+            diff = outputs - ground
             squared = np.square(diff)
             accuracy = np.sum(squared) / diff.size
             val_loss += accuracy
@@ -153,7 +157,6 @@ for n in range(NUMBER_EPOCHS):
     json_saver['val_loss'][str(n)] = float(val_loss)
 
     if val_loss < best_val:
-        writer.add_graph(LOG_NAME, model, dummy_input)
         torch.save(model.state_dict(), 'models/' + LOG_NAME + '.pt')
         best_val = val_loss
 
