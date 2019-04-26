@@ -56,14 +56,17 @@ if TRAIN_SET is 1:
     target_dir = 'training/target/'
     val_input_dir = 'val/input/'
     val_target_dir = 'val/target/'
+
 elif TRAIN_SET is 2:
     input_dir = 'train_augmented/input/'
     target_dir = 'train_augmented/target/'
     val_input_dir = 'val/input/'
     val_target_dir = 'val/target/'
+
 elif TRAIN_SET is 3:
     input_dir = 'DeepGlobe/input/'
     target_dir = 'DeepGlobe/target/'
+
 elif TRAIN_SET is 4:
     input_dir = 'train_rescaled/input/'
     target_dir = 'train_rescaled/target/'
