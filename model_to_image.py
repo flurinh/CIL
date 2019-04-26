@@ -20,9 +20,8 @@ def toTensorRGB(self, image):
 input_dir = 'test/'
 target_dir = 'train_augmented/target/'
 
-data = DataWrapper(input_dir, target_dir, torch.cuda.is_available())
 model = UNet(3,2)
-model.load_state_dict(torch.load('models/test.pt'))
+model.load_state_dict(torch.load('models/lr_0.0005_bs_1_opt_2.pt'))
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
     model.cuda()
