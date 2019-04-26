@@ -20,7 +20,7 @@ TRAIN_SET = int(sys.argv[5])
 LOG_NAME = str(sys.argv[6])
 
 writer = SummaryWriter('logdir/' + LOG_NAME)
-json_saver = {'train_loss', 'val_loss', 'n_parameters'}
+json_saver = {'train_error': dict(), 'val_error': dict(), 'n_parameters': 0}
 
 seed = 42
 np.random.seed(seed)
@@ -59,7 +59,8 @@ elif OPTIMIZER is 3:
     torch.optim.Adadelta(model.parameters(), lr=1.0, rho=0.9, eps=1e-06, weight_decay=0.0005)
 
 elif OPTIMIZER is 4:
-    torch.optim.RMSprop(model.parameters(), lr=LEARNING_RATE, alpha=0.99, eps=1e-08, weight_decay=0.0005, momentum=0.9, centered=False)
+    torch.optim.RMSprop(model.parameters(), lr=LEARNING_RATE, alpha=0.99, eps=1e-08, weight_decay=0.0005, momentum=0.9,
+                        centered=False)
 
 model_parameters = filter(lambda p: p.requires_grad, model.parameters())
 params = sum([np.prod(p.size()) for p in model_parameters])
@@ -102,7 +103,7 @@ for n in range(NUMBER_EPOCHS):
             outputs = np.asarray([[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs])
             diff = outputs - batch['target'].cpu().view((400, 400)).detach().numpy()
             squared = np.square(diff)
-            accuracy = np.sum(squared)/diff.size
+            accuracy = np.sum(squared) / diff.size
             val_loss += accuracy
 
     val_loss /= len(val_data)
@@ -114,7 +115,7 @@ for n in range(NUMBER_EPOCHS):
         torch.save(model, 'models/' + LOG_NAME + '.pt')
         best_val = val_loss
 
-with open('logdir/'+LOG_NAME+'.json', 'w') as fp:
+with open('logdir/' + LOG_NAME + '.json', 'w') as fp:
     json.dump(json_saver, fp)
 
 # print("Done Training -- Starting Evaluation")
