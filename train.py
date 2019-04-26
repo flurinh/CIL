@@ -10,7 +10,7 @@ from plotter_helper import *
 from tensorboardX import SummaryWriter
 import sys
 from skimage import io
-
+import json
 
 LEARNING_RATE = float(sys.argv[1])
 BATCH_SIZE = int(sys.argv[2])
@@ -19,6 +19,7 @@ OPTIMIZER = int(sys.argv[4])
 LOG_NAME = str(sys.argv[5])
 
 writer = SummaryWriter('logdir/' + LOG_NAME)
+json_saver = {'train_loss', 'val_loss', 'n_parameters'}
 
 seed = 42
 np.random.seed(seed)
@@ -56,14 +57,13 @@ model_parameters = filter(lambda p: p.requires_grad, model.parameters())
 params = sum([np.prod(p.size()) for p in model_parameters])
 print("number of trainable paramters in model:", params)
 writer.add_text("Trainable Parameters", str(params))
-
+json_saver['n_parameters'] = params
 test_indices = []
 mean_losses = []
 figure = plt.figure()
 best_val = np.inf
 
 dummy_input = torch.zeros(1, 3, 400, 400)
-
 for n in range(NUMBER_EPOCHS):
     [training_data, val_data, test_data, test_indices] = create_batches(data, test_indices, batch_size=BATCH_SIZE)
     print("Starting Epoch:\t", n)
@@ -82,6 +82,7 @@ for n in range(NUMBER_EPOCHS):
         losses.append(loss.cpu().detach().numpy())
 
     writer.add_scalar('Training Loss', float(np.mean(losses)), n)
+    json_saver['train_loss'][str(n)] = float(np.mean(losses))
     with torch.no_grad():
         val_loss = 0
         for i_batch, batch in enumerate(val_data):
@@ -98,11 +99,15 @@ for n in range(NUMBER_EPOCHS):
 
     val_loss /= len(val_data)
     writer.add_scalar('Validation Loss', float(val_loss), n)
+    json_saver['val_loss'][str(n)] = float(val_loss)
 
     if val_loss < best_val:
         writer.add_graph(LOG_NAME, model, dummy_input)
         torch.save(model, 'models/' + LOG_NAME + '.pt')
         best_val = val_loss
+
+with open(LOG_NAME+'.json', 'w') as fp:
+    json.dump(json_saver, fp)
 
 # print("Done Training -- Starting Evaluation")
 # for i_batch, batch in enumerate(test_data):
