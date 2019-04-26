@@ -55,8 +55,8 @@ dummy_input = (torch.zeros(3, 400, 400),)
 
 for n in range(NUMBER_EPOCHS):
     [training_data, val_data, test_data, test_indices] = create_batches(data, test_indices, batch_size=BATCH_SIZE)
-    for i, entry in enumerate(val_data):
-        print(i)
+    for i, batch in enumerate(val_data):
+        batch['target'].cpu().view((400, 400)).detach().numpy()
 
     print("Starting Epoch:\t", n)
     losses = []
@@ -81,19 +81,19 @@ for n in range(NUMBER_EPOCHS):
             inputs = batch['input']
             print(inputs.size())
             outputs = model(inputs)
-            outputs = outputs[0].view((400, 400)).detach().numpy()
-            outputs = [[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs]
-            diff = outputs - batch['target']
+            outputs = outputs[0].cpu().view((400, 400)).detach().numpy()
+            outputs = np.asarray([[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs])
+            diff = outputs - batch['target'].cpu().view((400, 400)).detach().numpy()
             squared = np.square(diff)
-            accuracy = squared/diff.size()
+            accuracy = np.sum(squared)/diff.size
             val_loss += accuracy
 
     val_loss /= len(val_data)
     writer.add_scalar('Validation Loss', float(val_loss), n)
 
     if val_loss < best_val:
-        writer.add_graph("Best Model", model, dummy_input)
-        torch.save(model, 'models/best.pt')
+        writer.add_graph(LOG_NAME, model, dummy_input)
+        torch.save(model, 'models/'+LOG_NAME+'.pt')
         best_val = val_loss
 
 # print("Done Training -- Starting Evaluation")
@@ -102,11 +102,11 @@ for n in range(NUMBER_EPOCHS):
 #         break
 #     inputs = batch['input']
 #     outputs = model(inputs)
-#     groundtruth = batch['target']
+#     target = batch['target']
 #     outputs = outputs.cpu()
 #     outputs = outputs[0].view((400, 400)).detach().numpy()
 #     print(outputs)
 #     outputs = [[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs]
 #     print(outputs)
-#     print(groundtruth.cpu())
-#     evaluation_side_by_side_plot(inputs.cpu(), outputs, groundtruth.cpu())
+#     print(target.cpu())
+#     evaluation_side_by_side_plot(inputs.cpu(), outputs, target.cpu())

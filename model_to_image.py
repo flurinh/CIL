@@ -3,32 +3,79 @@ from DataWrapper import *
 from PIL import Image
 from architectures import *
 import numpy as np
-def save_image():
+from skimage import io
+import matplotlib.image as mpimg
+from torch.utils.data import DataLoader
 
-    return
-input_dir = 'train_augmented/input/'
+PREDICT_TEST = False
+PREDICT_TRAINING = True
+
+def toTensorRGB(image):
+    # swap color axis because
+    # numpy image: H x W x C
+    # torch image: C X H X W
+    image_1 = image.transpose((2, 0, 1))
+    torch_image = torch.from_numpy(np.asarray([image_1])).type(torch.FloatTensor)
+    return torch_image / 255.
+
+
+input_dir = 'test/'
 target_dir = 'train_augmented/target/'
 
-data = DataWrapper(input_dir, target_dir, torch.cuda.is_available())
-model = UNet(3,2)
-model.load_state_dict(torch.load('models/test.pt'))
-if torch.cuda.is_available():
-    torch.cuda.empty_cache()
-    model.cuda()
-else:
-    print("CUDA unavailable, using CPU!")
-test_indices=[]
-[training_data, val_data, test_data, test_indices] = create_batches(data, test_indices, batch_size=1)
+model = UNet(3, 2)
+model.load_state_dict(torch.load('models/lr_0.0001_bs_1_opt_2_1556283988.pt'))
+model.eval()
+# if torch.cuda.is_available():
+#     torch.cuda.empty_cache()
+#     model.cuda()
+# else:
+#     print("CUDA unavailable, using CPU!")
 
-for i_batch, batch in enumerate(training_data):
-    print(i_batch)
-    inputs = batch['input']
-    outputs = model(inputs)
-    outputs = outputs.cpu()
-    outputs = outputs[0].view((400, 400)).detach().numpy()
-    print(outputs)
-    outputs = [[0. if pixel < 0.5 else 255. for pixel in row] for row in outputs]
-    outputs = np.asarray(outputs)
-    print(outputs)
-    out_image = Image.fromarray(outputs)
-    out_image.convert('RGB').save('output_images/'+str(i_batch).zfill(5)+".png")
+if PREDICT_TEST:
+    prediction_test_dir = "predictions_test/"
+    if not os.path.isdir(prediction_test_dir):
+        os.mkdir(prediction_test_dir)
+
+    for i in range(1, 224):
+        filename = "test/test_" + str(i) + ".png"
+        if not os.path.isfile(filename):
+            continue
+        print("Loading image {}".format(filename))
+
+        # Only prediction
+        img = io.imread(filename)
+
+        input = toTensorRGB(img)
+        outputs = model(input)
+
+        # outputs = outputs.cpu()
+        outputs = outputs[0].view((img.shape[0], img.shape[1])).detach().numpy()
+        outputs = [[0. if pixel < 0.5 else 255. for pixel in row] for row in outputs]
+        outputs = np.asarray(outputs)
+        out_image = Image.fromarray(outputs)
+        out_image.convert('RGB').save(prediction_test_dir + 'test_prediction_' + str(i) + ".png")
+
+if PREDICT_TRAINING:
+    prediction_training_dir = "predictions_training/"
+    if not os.path.isdir(prediction_training_dir):
+        os.mkdir(prediction_training_dir)
+
+    for i in range(1, 101):
+        filename = "training/images/satImage_" + str(i).zfill(3) + ".png"
+        if not os.path.isfile(filename):
+            continue
+        print("Loading image {}".format(filename))
+
+        img = io.imread(filename)
+
+        input = toTensorRGB(img)
+        outputs = model(input)
+
+        # outputs = outputs.cpu()
+        outputs = outputs[0].view((img.shape[0], img.shape[1])).detach().numpy()
+        outputs = [[0. if pixel < 0.5 else 255. for pixel in row] for row in outputs]
+        outputs = np.asarray(outputs)
+        out_image = Image.fromarray(outputs)
+        out_image.convert('RGB').save(prediction_training_dir + 'test_prediction_' + str(i) + ".png")
+
+

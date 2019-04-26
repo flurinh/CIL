@@ -199,7 +199,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
     data_dir = '../training/'
     train_data_filename = data_dir + 'images/'
-    train_labels_filename = data_dir + 'groundtruth/'
+    train_labels_filename = data_dir + 'target/'
 
     train_indices = list(range(1, TRAINING_SIZE + 1))
     validation_indices = list(range(TRAINING_SIZE + 1, TRAINING_SIZE + VALIDATION_SIZE + 1))
@@ -314,7 +314,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
         return img_prediction
 
-    # Get a concatenation of the prediction and groundtruth for given input file
+    # Get a concatenation of the prediction and target for given input file
     def get_prediction_with_groundtruth(filename, image_idx, binary=True):
 
         imageid = "satImage_%.3d" % image_idx

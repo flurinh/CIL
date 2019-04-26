@@ -33,7 +33,7 @@ class DataWrapper(Dataset):
             return torch_image/255.
 
         def toTensorBW(self, image):
-            torch_image = torch.from_numpy(image).view(400, 400, 1)
+            torch_image = torch.from_numpy(image).view(image.shape[0], image.shape[1], 1)
             torch_image = torch_image.permute((2, 0, 1))
 
             if self.cuda_available:
@@ -50,28 +50,10 @@ class DataWrapper(Dataset):
         return sample
 
 
-def create_batches(data, test_set, batch_size=10):
-    if len(test_set) == 0:
-        indices = range(len(data))
-        training_indices = random.sample(indices, k=int(0.8 * len(data)))
-        indices_2 = [x for x in indices if x not in training_indices]
-        eval_indices = random.sample(indices_2, k=int(0.1 * len(data)))
-        indices_3 = [x for x in indices_2 if x not in eval_indices]
-        test_indices = indices_3
-    else:
-        indices = range(len(data))
-        test_indices = test_set
-        indices_2 = [x for x in indices if x not in test_indices]
-        training_indices = random.sample(indices_2, k=int(0.8 * len(data)))
-        indices_3 = [x for x in indices_2 if x not in training_indices]
-        eval_indices = random.sample(indices_3, k=int(0.1 * len(data)))
-
-    assert len(training_indices) + len(test_indices) + len(eval_indices) == len(data), "Not all data is used!"
+def create_batches(data, batch_size=10):
     # create batches, shuffle needs to be false because we use the sampler.
-    training_data = DataLoader(data, shuffle=False, batch_size=batch_size, sampler=SubsetRandomSampler(training_indices))
-    val_data = DataLoader(data, shuffle=False, batch_size=1, sampler=SubsetRandomSampler(eval_indices))
-    test_data = DataLoader(data, shuffle=False, batch_size=1, sampler=SubsetRandomSampler(test_indices))
-    return [training_data, val_data, test_data, test_indices]
+    data = DataLoader(data, shuffle=True, batch_size=batch_size)
+    return data
 
 # input_dir = 'train_augmented/input/'
 # target_dir = 'train_augmented/target/'
