@@ -118,7 +118,7 @@ for n in range(NUMBER_EPOCHS):
     json_saver['train_loss'][str(n)] = float(np.mean(losses))
     with torch.no_grad():
         val_loss = 0
-        for i_batch, batch in enumerate(val_data):
+        for i_batch, batch in enumerate(test_data):
             model.eval()
             inputs = batch['input']
             print(inputs.size())
