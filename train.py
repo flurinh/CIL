@@ -11,13 +11,37 @@ from tensorboardX import SummaryWriter
 import sys
 from skimage import io
 import json
+import argparse
 
-LEARNING_RATE = float(sys.argv[1])
-BATCH_SIZE = int(sys.argv[2])
-NUMBER_EPOCHS = int(sys.argv[3])
-OPTIMIZER = int(sys.argv[4])
-TRAIN_SET = int(sys.argv[5])
-LOG_NAME = str(sys.argv[6])
+parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument("--lr", nargs="?", type=float, dest="learning_rate", default="0.0005",
+                    help="Learning rate of the model as float")
+parser.add_argument("--op", nargs="?", type=int, dest="optimizer", default="1",
+                    help="Optimizer to use: \n"
+                         "1: SGD\n"
+                         "2: Adam\n"
+                         "3: AdaDelta\n"
+                         "4: RMSProp")
+parser.add_argument("-d", nargs="?", type=int, dest="dataset", default="2",
+                    help="Dataset to use: \n"
+                         "1: Only our training data\n"
+                         "2: Augmented training data\n"
+                         "3: Augmented training data + additional data (Thomas)")
+parser.add_argument("-b", nargs="?", type=int, dest="batch_size", default="1",
+                    help="Batch size")
+parser.add_argument("--log", nargs="?", type=str, dest="log_dir", default="model",
+                    help="Log directory")
+parser.add_argument("-e", nargs="?", type=int, dest="nr_epochs", default="50",
+                    help="Number of epochs")
+
+args = parser.parse_args()
+
+LEARNING_RATE = args.learning_rate
+BATCH_SIZE = args.batch_size
+NUMBER_EPOCHS = args.nr_epochs
+OPTIMIZER = args.optimizer
+TRAIN_SET = args.dataset
+LOG_NAME = args.log_dir
 
 writer = SummaryWriter('logdir/' + LOG_NAME)
 json_saver = {'train_error': dict(), 'val_error': dict(), 'n_parameters': 0}
