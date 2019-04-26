@@ -12,7 +12,7 @@ import sys
 from skimage import io
 import json
 import argparse
-
+import time
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("--lr", nargs="?", type=float, dest="learning_rate", default="0.0005",
                     help="Learning rate of the model as float")
@@ -41,7 +41,7 @@ BATCH_SIZE = args.batch_size
 NUMBER_EPOCHS = args.nr_epochs
 OPTIMIZER = args.optimizer
 TRAIN_SET = args.dataset
-LOG_NAME = args.log_dir
+LOG_NAME = args.log_dir + "_" + str(int(time.time()))
 
 writer = SummaryWriter('logdir/' + LOG_NAME)
 json_saver = {'train_loss': dict(), 'val_loss': dict(), 'n_parameters': 0}
