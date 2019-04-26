@@ -3,6 +3,7 @@ from DataWrapper import *
 from PIL import Image
 from architectures import *
 import numpy as np
+from skimage import io
 import matplotlib.image as mpimg
 from torch.utils.data import DataLoader
 
@@ -41,11 +42,12 @@ for i in range(1, 224):
 
     # Only prediction
     img = io.imread(filename)
+
     input = toTensorRGB(img)
     outputs = model(input)
 
     # outputs = outputs.cpu()
-    outputs = outputs[0].view((608, 608)).detach().numpy()
+    outputs = outputs[0].view((img.shape[0], img.shape[1])).detach().numpy()
     outputs = [[0. if pixel < 0.5 else 255. for pixel in row] for row in outputs]
     outputs = np.asarray(outputs)
     out_image = Image.fromarray(outputs)
