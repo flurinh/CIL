@@ -8,7 +8,6 @@
 /baseline/predictions_test/
 /baseline/predictions_training/
 /baseline/predictions_validation/
-/models/
 dummy_submission.csv
 sample_submission.csv
 /output_images/
