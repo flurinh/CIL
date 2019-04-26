@@ -136,7 +136,7 @@ for n in range(NUMBER_EPOCHS):
 
     if val_loss < best_val:
         writer.add_graph(LOG_NAME, model, dummy_input)
-        torch.save(model, 'models/' + LOG_NAME + '.pt')
+        torch.save(model.state_dict(), 'models/' + LOG_NAME + '.pt')
         best_val = val_loss
 
 with open('logdir/' + LOG_NAME + '.json', 'w') as fp:
