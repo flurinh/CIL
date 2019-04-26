@@ -3,10 +3,21 @@ from DataWrapper import *
 from PIL import Image
 from architectures import *
 import numpy as np
-def save_image():
+import matplotlib.image as mpimg
 
-    return
-input_dir = 'train_augmented/input/'
+
+def toTensorRGB(self, image):
+    # swap color axis because
+    # numpy image: H x W x C
+    # torch image: C X H X W
+    image = image.transpose((2, 0, 1))
+    if self.cuda_available:
+        torch_image = torch.from_numpy(image).type(torch.FloatTensor).cuda()
+    else:
+        torch_image = torch.from_numpy(image).type(torch.FloatTensor)
+    return torch_image / 255.
+
+input_dir = 'test/'
 target_dir = 'train_augmented/target/'
 
 data = DataWrapper(input_dir, target_dir, torch.cuda.is_available())
@@ -17,18 +28,24 @@ if torch.cuda.is_available():
     model.cuda()
 else:
     print("CUDA unavailable, using CPU!")
-test_indices=[]
-[training_data, val_data, test_data, test_indices] = create_batches(data, test_indices, batch_size=1)
 
-for i_batch, batch in enumerate(training_data):
-    print(i_batch)
-    inputs = batch['input']
-    outputs = model(inputs)
-    outputs = outputs.cpu()
+prediction_test_dir = "predictions_test/"
+if not os.path.isdir(prediction_test_dir):
+    os.mkdir(prediction_test_dir)
+
+for i in range(1, 224):
+    filename = "/test/test_" + str(i) + ".png"
+    if not os.path.isfile(filename):
+        continue
+    print("Loading image {}".format(filename))
+
+    # Only prediction
+    img = mpimg.imread(filename)
+    input = toTensorRGB(img)
+    outputs = model(input)
+    #outputs = outputs.cpu()
     outputs = outputs[0].view((400, 400)).detach().numpy()
-    print(outputs)
     outputs = [[0. if pixel < 0.5 else 255. for pixel in row] for row in outputs]
     outputs = np.asarray(outputs)
-    print(outputs)
     out_image = Image.fromarray(outputs)
-    out_image.convert('RGB').save('output_images/'+str(i_batch).zfill(5)+".png")
+    out_image.convert('RGB').save(prediction_test_dir + 'test_prediction_' + str(i) + ".png")
