@@ -14,3 +14,4 @@ sample_submission.csv
 /logdir/
 /__pycache__/
 /DeepGlobe/
+/models/
