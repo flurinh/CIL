@@ -13,6 +13,7 @@ from skimage import io
 import json
 import argparse
 import time
+from architecture_2 import *
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("--lr", nargs="?", type=float, dest="learning_rate", default="0.0005",
@@ -78,7 +79,8 @@ elif TRAIN_SET is 4:
 train_data = DataWrapper(input_dir, target_dir, torch.cuda.is_available())
 val_data = DataWrapper(val_input_dir, val_target_dir, torch.cuda.is_available())
 
-model = UNet(3, 2)
+model = R2AttU_Net()
+
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
     model.cuda()

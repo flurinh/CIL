@@ -37,8 +37,8 @@ def masks_to_submission(submission_filename, *image_filenames):
 
 
 if __name__ == '__main__':
-    submission_filename = 'dummy_submission.csv'
-    prediction_directory = "predictions_test"
+    submission_filename = 'scaled_adam_unet.csv'
+    prediction_directory = "predictions_test/scaled"
 
     if not os.path.isdir(prediction_directory):
         print("No directory found. Run the predictions first")
