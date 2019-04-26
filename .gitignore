@@ -16,3 +16,5 @@ sample_submission.csv
 /DeepGlobe/
 /models/
 /val/
+/train_rescaled/
+/val_rescaled/

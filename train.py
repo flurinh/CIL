@@ -54,14 +54,25 @@ torch.manual_seed(seed)
 if TRAIN_SET is 1:
     input_dir = 'training/input/'
     target_dir = 'training/target/'
+    val_input_dir = 'val/input/'
+    val_target_dir = 'val/target/'
 elif TRAIN_SET is 2:
     input_dir = 'train_augmented/input/'
     target_dir = 'train_augmented/target/'
+    val_input_dir = 'val/input/'
+    val_target_dir = 'val/target/'
 elif TRAIN_SET is 3:
     input_dir = 'DeepGlobe/input/'
     target_dir = 'DeepGlobe/target/'
+elif TRAIN_SET is 4:
+    input_dir = 'train_rescaled/input/'
+    target_dir = 'train_rescaled/target/'
+    val_input_dir = 'val_rescaled/input/'
+    val_target_dir = 'val_rescaled/target/'
 
-data = DataWrapper(input_dir, target_dir, torch.cuda.is_available())
+
+train_data = DataWrapper(input_dir, target_dir, torch.cuda.is_available())
+val_data = DataWrapper(val_input_dir, val_target_dir, torch.cuda.is_available())
 
 model = UNet(3, 2)
 if torch.cuda.is_available():
@@ -92,7 +103,7 @@ model_parameters = filter(lambda p: p.requires_grad, model.parameters())
 params = sum([np.prod(p.size()) for p in model_parameters])
 print("number of trainable paramters in model:", params)
 writer.add_text("Trainable Parameters", str(params))
-json_saver['n_parameters'] = params
+json_saver['n_parameters'] = int(params)
 test_indices = []
 mean_losses = []
 figure = plt.figure()
@@ -100,9 +111,8 @@ best_val = np.inf
 
 dummy_input = torch.zeros(1, 3, 400, 400)
 for n in range(NUMBER_EPOCHS):
-    [training_data, val_data, test_data, test_indices] = create_batches(data, test_indices, batch_size=BATCH_SIZE)
-    json_saver['test_indices'] = test_indices
-    print(test_indices)
+    training_data = create_batches(train_data, batch_size=BATCH_SIZE)
+    test_data = create_batches(val_data, batch_size=1)
     print("Starting Epoch:\t", n)
     losses = []
     model.train()
@@ -135,7 +145,7 @@ for n in range(NUMBER_EPOCHS):
             accuracy = np.sum(squared) / diff.size
             val_loss += accuracy
 
-    val_loss /= len(val_data)
+    val_loss /= len(test_data)
     writer.add_scalar('Validation Loss', float(val_loss), n)
     json_saver['val_loss'][str(n)] = float(val_loss)
 
