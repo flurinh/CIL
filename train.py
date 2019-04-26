@@ -27,7 +27,8 @@ parser.add_argument("-d", nargs="?", type=int, dest="dataset", default="2",
                     help="Dataset to use: \n"
                          "1: Only our training data\n"
                          "2: Augmented training data\n"
-                         "3: Augmented training data + additional data (Thomas)")
+                         "3: Augmented training data + additional data (Thomas)\n"
+                         "4: Augmented training data rescaled to (608,608)")
 parser.add_argument("-b", nargs="?", type=int, dest="batch_size", default="1",
                     help="Batch size")
 parser.add_argument("--log", nargs="?", type=str, dest="log_dir", default="model",
