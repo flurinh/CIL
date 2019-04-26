@@ -50,10 +50,12 @@ def transform_image_combined(image_1, image_2, counter, size=400):
     :param image_2:
     :return:
     '''
+    # TODO: assert identical IDs of image and target or drop the element!
+    
     opened_image_1 = Image.open(image_1)
     opened_image_2 = Image.open(image_2)
-    rotation_angles = [0, 90, 180, 270]
-    flip_direction = [Image.FLIP_LEFT_RIGHT, Image.FLIP_TOP_BOTTOM, Image.TRANSPOSE]
+    rotation_angles = [0]
+    flip_direction = [Image.FLIP_LEFT_RIGHT]
     if opened_image_1.size[0] == 400:
         for angle in rotation_angles:
             for flip in flip_direction:
@@ -100,7 +102,7 @@ def plot_images(idx):
 
 # point to the correct directories
 original_root_dir = 'training'
-only_augmentation_data = True
+only_augmentation_data = False
 
 original_input_dir = original_root_dir + '/images/'
 original_target_dir = original_root_dir + '/targets/'
@@ -135,5 +137,5 @@ for original_input_image, original_target_image in zip(original_input_images, or
                                        counter)
 
 # Check our results
-print('Checking our results...")
-plot_images(np.random.randint(0, counter))
+# print('Checking our results...")
+# plot_images(np.random.randint(0, counter))

@@ -22,7 +22,7 @@ def find_img(soup):
 def download(link, folder):
     print('Downloading', link)
     rq = requests.get(link, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:63.0) Gecko/20100101 Firefox/63.0'})
-    file=folder+'/'+link[-16:-8]+'.png'
+    file=folder+link[-16:-7]+'.png'
     if rq.status_code == 200:
         img1 = Image.open(BytesIO(rq.content))
         img2 = imageio.imread(BytesIO(rq.content))
