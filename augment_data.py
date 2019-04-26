@@ -14,8 +14,9 @@ def transform_image_combined(image_1, image_2, counter, rescale=False, val=False
 
     opened_image_1 = Image.open(image_1)
     opened_image_2 = Image.open(image_2)
-    opened_image_1 = opened_image_1.resize((608, 608), resample=Image.BICUBIC)
-    opened_image_2 = opened_image_2.resize((608, 608), resample=Image.BICUBIC)
+    if rescale is True:
+        opened_image_1 = opened_image_1.resize((608, 608), resample=Image.BICUBIC)
+        opened_image_2 = opened_image_2.resize((608, 608), resample=Image.BICUBIC)
 
     rotation_angles = [0, 90, 180, 270]
     flip_direction = [Image.FLIP_LEFT_RIGHT, Image.FLIP_TOP_BOTTOM, Image.TRANSPOSE]
