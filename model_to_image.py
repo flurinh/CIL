@@ -20,7 +20,7 @@ input_dir = 'test/'
 target_dir = 'train_augmented/target/'
 
 model = UNet(3, 2)
-model.load_state_dict(torch.load('models/model_1556280564.pt'))
+model.load_state_dict(torch.load('models/lr_0.0001_bs_1_opt_2_1556283988.pt'))
 model.eval()
 # if torch.cuda.is_available():
 #     torch.cuda.empty_cache()

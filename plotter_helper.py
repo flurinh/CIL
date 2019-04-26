@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 import matplotlib.image as mpimg
-
+import os
+from skimage import io
 
 def evaluation_side_by_side_plot(inputs, outputs, groundtruth, save=False, save_name=""):
     fig = plt.figure()
@@ -79,6 +80,17 @@ def overlay_side_by_side(img, ground_truth, prediction, save=False, save_name="p
     plt.close(fig)
 
 if __name__ == "__main__":
-    image = mpimg.imread("training/images/satImage_001.png")
-    ground_truth = mpimg.imread("training/target/satImage_001.png")
-    overlay_image = overlay_side_by_side(image, ground_truth, ground_truth)
+    for i in range(1, 224):
+        filename = "predictions_test/test_prediction_" + str(i) + ".png"
+        filename_im = "test/test_" + str(i) + ".png"
+        if not os.path.isfile(filename):
+            continue
+        print("Loading image {}".format(filename))
+
+        # Only prediction
+        prediction = Image.open(filename)
+        prediction = prediction.convert('L')
+        prediction = np.asarray(prediction)
+        image = io.imread(filename_im)
+        overlay_image = make_img_overlay(image, prediction)
+        overlay_image.save("predictions_test/overlay_" + str(i) + ".png")
