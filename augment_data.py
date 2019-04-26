@@ -33,7 +33,7 @@ def transform_image_combined(image_1, image_2, counter):
 # point to the correct directories
 original_root_dir = 'training'
 original_input_dir = original_root_dir + '/images/'
-original_target_dir = original_root_dir + '/groundtruth/'
+original_target_dir = original_root_dir + '/target/'
 
 augmented_root_dir = 'train_augmented'
 augmented_input_dir = augmented_root_dir + '/input/'

@@ -16,7 +16,8 @@ LEARNING_RATE = float(sys.argv[1])
 BATCH_SIZE = int(sys.argv[2])
 NUMBER_EPOCHS = int(sys.argv[3])
 OPTIMIZER = int(sys.argv[4])
-LOG_NAME = str(sys.argv[5])
+TRAIN_SET = int(sys.argv[5])
+LOG_NAME = str(sys.argv[6])
 
 writer = SummaryWriter('logdir/' + LOG_NAME)
 json_saver = {'train_loss', 'val_loss', 'n_parameters'}
@@ -25,8 +26,15 @@ seed = 42
 np.random.seed(seed)
 torch.manual_seed(seed)
 
-input_dir = 'train_augmented/input/'
-target_dir = 'train_augmented/target/'
+if TRAIN_SET is 1:
+    input_dir = 'training/input/'
+    target_dir = 'training/target/'
+elif TRAIN_SET is 2:
+    input_dir = 'train_augmented/input/'
+    target_dir = 'train_augmented/target/'
+elif TRAIN_SET is 3:
+    input_dir = 'DeepGlobe/input/'
+    target_dir = 'DeepGlobe/target/'
 
 data = DataWrapper(input_dir, target_dir, torch.cuda.is_available())
 
@@ -115,11 +123,11 @@ with open('logdir/'+LOG_NAME+'.json', 'w') as fp:
 #         break
 #     inputs = batch['input']
 #     outputs = model(inputs)
-#     groundtruth = batch['target']
+#     target = batch['target']
 #     outputs = outputs.cpu()
 #     outputs = outputs[0].view((400, 400)).detach().numpy()
 #     print(outputs)
 #     outputs = [[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs]
 #     print(outputs)
-#     print(groundtruth.cpu())
-#     evaluation_side_by_side_plot(inputs.cpu(), outputs, groundtruth.cpu())
+#     print(target.cpu())
+#     evaluation_side_by_side_plot(inputs.cpu(), outputs, target.cpu())

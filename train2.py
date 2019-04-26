@@ -102,11 +102,11 @@ for n in range(NUMBER_EPOCHS):
 #         break
 #     inputs = batch['input']
 #     outputs = model(inputs)
-#     groundtruth = batch['target']
+#     target = batch['target']
 #     outputs = outputs.cpu()
 #     outputs = outputs[0].view((400, 400)).detach().numpy()
 #     print(outputs)
 #     outputs = [[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs]
 #     print(outputs)
-#     print(groundtruth.cpu())
-#     evaluation_side_by_side_plot(inputs.cpu(), outputs, groundtruth.cpu())
+#     print(target.cpu())
+#     evaluation_side_by_side_plot(inputs.cpu(), outputs, target.cpu())
