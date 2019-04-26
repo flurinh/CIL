@@ -19,7 +19,6 @@ def check_flawed(img1, img2):
         return False
     else:
         return True
-    
 
 def crop_image(img1, img2, size, counter):
     num_w = img1.size[0] // size + 1
@@ -43,19 +42,16 @@ def crop_image(img1, img2, size, counter):
                     print(counter)
     return counter
 
-
 def transform_image_combined(image_1, image_2, counter, size=400):
     '''
     :param image_1:
     :param image_2:
     :return:
     '''
-    # TODO: assert identical IDs of image and target or drop the element!
-    
     opened_image_1 = Image.open(image_1)
     opened_image_2 = Image.open(image_2)
-    rotation_angles = [0]
-    flip_direction = [Image.FLIP_LEFT_RIGHT]
+    rotation_angles = [0, 90, 180, 270]
+    flip_direction = [Image.FLIP_LEFT_RIGHT, Image.FLIP_TOP_BOTTOM, Image.TRANSPOSE]
     if opened_image_1.size[0] == 400:
         for angle in rotation_angles:
             for flip in flip_direction:
@@ -70,7 +66,6 @@ def transform_image_combined(image_1, image_2, counter, size=400):
     else:
         counter = crop_image(opened_image_1, opened_image_2, size, counter)
     return counter
-
 
 def load_images(idx, folder = 'train_augmented2/'):
     sat = folder+'input/'
@@ -95,17 +90,16 @@ def load_images(idx, folder = 'train_augmented2/'):
         x_offset += img.size[0]
     return new_img
 
-
 def plot_images(idx):
     img = load_images(idx)
     img.show()
 
 # point to the correct directories
 original_root_dir = 'training'
-only_augmentation_data = False
+only_augmentation_data = False #If true only loads the toronto dataset
 
 original_input_dir = original_root_dir + '/images/'
-original_target_dir = original_root_dir + '/targets/'
+original_target_dir = original_root_dir + '/target/'
 
 input_dir2 = original_root_dir+'/sat_data/'
 target_dir2 = original_root_dir+'/map_data/'
@@ -114,8 +108,11 @@ augmented_root_dir = 'train_augmented2'
 augmented_input_dir = augmented_root_dir + '/input/'
 augmented_target_dir = augmented_root_dir + '/target/'
 
-valid = [original_root_dir, original_input_dir, original_target_dir, input_dir2, target_dir2,
-             augmented_root_dir, augmented_input_dir, augmented_target_dir]
+valid = [original_root_dir,
+         original_input_dir, original_target_dir,
+         input_dir2, target_dir2,
+         augmented_root_dir,
+         augmented_input_dir, augmented_target_dir]
 
 for name in valid:
     if not os.path.isdir(name):
@@ -128,14 +125,14 @@ if only_augmentation_data:
 else:
     original_input_images = glob.glob(original_input_dir + '*.png') + glob.glob(input_dir2 + '*.png')
     original_target_images = glob.glob(original_target_dir + '*.png') + glob.glob(target_dir2 + '*.png')
-
-counter = 0
+    print("Using all the data!")
 # run through all the images, keep input and target zipped
+counter = 0
 for original_input_image, original_target_image in zip(original_input_images, original_target_images):
     counter = transform_image_combined(original_input_image,
                                        original_target_image,
                                        counter)
-
+print("Total number of images generated:", counter)
 # Check our results
 # print('Checking our results...")
 # plot_images(np.random.randint(0, counter))
