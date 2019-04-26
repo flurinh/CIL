@@ -3,7 +3,7 @@
 declare -a LearningRates=("0.0001")
 declare -a BatchSizes=("1")
 declare -a Optimizers=("2")
-declare -a TrainingSet =("2" "4")
+declare -a TrainingSet=("2" "4")
 # Iterate the string array using for loop
 for lr in ${LearningRates[@]}; do
    for bs in ${BatchSizes[@]}; do
