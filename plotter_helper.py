@@ -80,17 +80,35 @@ def overlay_side_by_side(img, ground_truth, prediction, save=False, save_name="p
     plt.close(fig)
 
 if __name__ == "__main__":
-    for i in range(1, 224):
-        filename = "predictions_test/test_prediction_" + str(i) + ".png"
-        filename_im = "test/test_" + str(i) + ".png"
-        if not os.path.isfile(filename):
-            continue
-        print("Loading image {}".format(filename))
+    PREDICT_TEST = False
+    PREDICT_TRAINING = True
+    if PREDICT_TEST:
+        for i in range(1, 224):
+            filename = "predictions_test/test_prediction_" + str(i) + ".png"
+            filename_im = "test/test_" + str(i) + ".png"
+            if not os.path.isfile(filename):
+                continue
+            print("Loading image {}".format(filename))
 
-        # Only prediction
-        prediction = Image.open(filename)
-        prediction = prediction.convert('L')
-        prediction = np.asarray(prediction)
-        image = io.imread(filename_im)
-        overlay_image = make_img_overlay(image, prediction)
-        overlay_image.save("predictions_test/overlay_" + str(i) + ".png")
+            # Only prediction
+            prediction = Image.open(filename)
+            prediction = prediction.convert('L')
+            prediction = np.asarray(prediction)
+            image = io.imread(filename_im)
+            overlay_image = make_img_overlay(image, prediction)
+            overlay_image.save("predictions_test/overlay_" + str(i) + ".png")
+    if PREDICT_TRAINING:
+        for i in range(1, 101):
+            filename_predictions = "predictions_training/test_prediction_" + str(i) + ".png"
+            filename_images = "training/images/satImage_" + str(i).zfill(3) + ".png"
+            filename_ground_truth = "training/target/satImage_" + str(i).zfill(3) + ".png"
+            print("Loading image {}".format(filename_images))
+
+            prediction = Image.open(filename_predictions)
+            prediction = prediction.convert("L")
+            prediction = np.asarray(prediction)
+            image = io.imread(filename_images)
+            ground_truth = io.imread(filename_ground_truth)
+
+            side_by_side = overlay_side_by_side(image, ground_truth, prediction, save=True,
+                                                save_name="predictions_training/side_by_side_" + str(i) + ".png")

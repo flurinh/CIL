@@ -7,6 +7,9 @@ from skimage import io
 import matplotlib.image as mpimg
 from torch.utils.data import DataLoader
 
+PREDICT_TEST = False
+PREDICT_TRAINING = True
+
 def toTensorRGB(image):
     # swap color axis because
     # numpy image: H x W x C
@@ -28,27 +31,51 @@ model.eval()
 # else:
 #     print("CUDA unavailable, using CPU!")
 
-prediction_test_dir = "predictions_test/"
-if not os.path.isdir(prediction_test_dir):
-    os.mkdir(prediction_test_dir)
+if PREDICT_TEST:
+    prediction_test_dir = "predictions_test/"
+    if not os.path.isdir(prediction_test_dir):
+        os.mkdir(prediction_test_dir)
+
+    for i in range(1, 224):
+        filename = "test/test_" + str(i) + ".png"
+        if not os.path.isfile(filename):
+            continue
+        print("Loading image {}".format(filename))
+
+        # Only prediction
+        img = io.imread(filename)
+
+        input = toTensorRGB(img)
+        outputs = model(input)
+
+        # outputs = outputs.cpu()
+        outputs = outputs[0].view((img.shape[0], img.shape[1])).detach().numpy()
+        outputs = [[0. if pixel < 0.5 else 255. for pixel in row] for row in outputs]
+        outputs = np.asarray(outputs)
+        out_image = Image.fromarray(outputs)
+        out_image.convert('RGB').save(prediction_test_dir + 'test_prediction_' + str(i) + ".png")
+
+if PREDICT_TRAINING:
+    prediction_training_dir = "predictions_training/"
+    if not os.path.isdir(prediction_training_dir):
+        os.mkdir(prediction_training_dir)
+
+    for i in range(1, 101):
+        filename = "training/images/satImage_" + str(i).zfill(3) + ".png"
+        if not os.path.isfile(filename):
+            continue
+        print("Loading image {}".format(filename))
+
+        img = io.imread(filename)
+
+        input = toTensorRGB(img)
+        outputs = model(input)
+
+        # outputs = outputs.cpu()
+        outputs = outputs[0].view((img.shape[0], img.shape[1])).detach().numpy()
+        outputs = [[0. if pixel < 0.5 else 255. for pixel in row] for row in outputs]
+        outputs = np.asarray(outputs)
+        out_image = Image.fromarray(outputs)
+        out_image.convert('RGB').save(prediction_training_dir + 'test_prediction_' + str(i) + ".png")
 
 
-
-for i in range(1, 224):
-    filename = "test/test_" + str(i) + ".png"
-    if not os.path.isfile(filename):
-        continue
-    print("Loading image {}".format(filename))
-
-    # Only prediction
-    img = io.imread(filename)
-
-    input = toTensorRGB(img)
-    outputs = model(input)
-
-    # outputs = outputs.cpu()
-    outputs = outputs[0].view((img.shape[0], img.shape[1])).detach().numpy()
-    outputs = [[0. if pixel < 0.5 else 255. for pixel in row] for row in outputs]
-    outputs = np.asarray(outputs)
-    out_image = Image.fromarray(outputs)
-    out_image.convert('RGB').save(prediction_test_dir + 'test_prediction_' + str(i) + ".png")
