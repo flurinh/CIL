@@ -44,7 +44,7 @@ TRAIN_SET = args.dataset
 LOG_NAME = args.log_dir
 
 writer = SummaryWriter('logdir/' + LOG_NAME)
-json_saver = {'train_error': dict(), 'val_error': dict(), 'n_parameters': 0}
+json_saver = {'train_loss': dict(), 'val_loss': dict(), 'n_parameters': 0}
 
 seed = 42
 np.random.seed(seed)
@@ -80,10 +80,10 @@ elif OPTIMIZER is 2:
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
 elif OPTIMIZER is 3:
-    torch.optim.Adadelta(model.parameters(), lr=1.0, rho=0.9, eps=1e-06, weight_decay=0.0005)
+    optimizer = torch.optim.Adadelta(model.parameters(), lr=1.0, rho=0.9, eps=1e-06, weight_decay=0.0005)
 
 elif OPTIMIZER is 4:
-    torch.optim.RMSprop(model.parameters(), lr=LEARNING_RATE, alpha=0.99, eps=1e-08, weight_decay=0.0005, momentum=0.9,
+    optimizer = torch.optim.RMSprop(model.parameters(), lr=LEARNING_RATE, alpha=0.99, eps=1e-08, weight_decay=0.0005, momentum=0.9,
                         centered=False)
 
 model_parameters = filter(lambda p: p.requires_grad, model.parameters())
