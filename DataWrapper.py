@@ -62,9 +62,9 @@ def create_batches(data, test_set, batch_size=10):
         indices = range(len(data))
         test_indices = test_set
         indices_2 = [x for x in indices if x not in test_indices]
-        training_indices = random.sample(indices_2, k=int(0.8 * len(data)))
+        training_indices = random.sample(indices_2, k=int(0.7 * len(data)))
         indices_3 = [x for x in indices_2 if x not in training_indices]
-        eval_indices = random.sample(indices_3, k=1)
+        eval_indices = random.sample(indices_3, k=int(0.1 * len(data)))
 
     assert len(training_indices) + len(test_indices) + len(eval_indices) == len(data), "Not all data is used!"
     # create batches, shuffle needs to be false because we use the sampler.
