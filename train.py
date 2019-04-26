@@ -106,7 +106,7 @@ for n in range(NUMBER_EPOCHS):
         torch.save(model, 'models/' + LOG_NAME + '.pt')
         best_val = val_loss
 
-with open(LOG_NAME+'.json', 'w') as fp:
+with open('logdir/'+LOG_NAME+'.json', 'w') as fp:
     json.dump(json_saver, fp)
 
 # print("Done Training -- Starting Evaluation")
