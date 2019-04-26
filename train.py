@@ -16,7 +16,7 @@ import argparse
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("--lr", nargs="?", type=float, dest="learning_rate", default="0.0005",
                     help="Learning rate of the model as float")
-parser.add_argument("--op", nargs="?", type=int, dest="optimizer", default="1",
+parser.add_argument("--op", nargs="?", type=int, dest="optimizer", default="2",
                     help="Optimizer to use: \n"
                          "1: SGD\n"
                          "2: Adam\n"
