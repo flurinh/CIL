@@ -15,9 +15,10 @@ from skimage import io
 LEARNING_RATE = float(sys.argv[1])
 BATCH_SIZE = int(sys.argv[2])
 NUMBER_EPOCHS = int(sys.argv[3])
-LOG_NAME = str(sys.argv[4])
+OPTIMIZER = int(sys.argv[4])
+LOG_NAME = str(sys.argv[5])
 
-writer = SummaryWriter('logdir/'+LOG_NAME)
+writer = SummaryWriter('logdir/' + LOG_NAME)
 
 seed = 42
 np.random.seed(seed)
@@ -36,10 +37,11 @@ else:
     print("CUDA unavailable, using CPU!")
 
 criterion = nn.BCELoss()
-optimizer = torch.optim.SGD(model.parameters(),
-                            lr=LEARNING_RATE,
-                            momentum=0.9,
-                            weight_decay=0.0005)
+if OPTIMIZER is 1:
+    optimizer = torch.optim.SGD(model.parameters(),
+                                lr=LEARNING_RATE,
+                                momentum=0.9,
+                                weight_decay=0.0005)
 
 model_parameters = filter(lambda p: p.requires_grad, model.parameters())
 params = sum([np.prod(p.size()) for p in model_parameters])
@@ -50,13 +52,10 @@ mean_losses = []
 figure = plt.figure()
 best_val = np.inf
 
-dummy_input = (torch.zeros(3, 400, 400),)
+dummy_input = torch.zeros(1, 3, 400, 400)
 
 for n in range(NUMBER_EPOCHS):
     [training_data, val_data, test_data, test_indices] = create_batches(data, test_indices, batch_size=BATCH_SIZE)
-    for i, batch in enumerate(val_data):
-        batch['target'].cpu().view((400, 400)).detach().numpy()
-
     print("Starting Epoch:\t", n)
     losses = []
     model.train()
@@ -84,7 +83,7 @@ for n in range(NUMBER_EPOCHS):
             outputs = np.asarray([[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs])
             diff = outputs - batch['target'].cpu().view((400, 400)).detach().numpy()
             squared = np.square(diff)
-            accuracy = squared/diff.size()
+            accuracy = squared / diff.size()
             val_loss += accuracy
 
     val_loss /= len(val_data)
@@ -92,7 +91,7 @@ for n in range(NUMBER_EPOCHS):
 
     if val_loss < best_val:
         writer.add_graph(LOG_NAME, model, dummy_input)
-        torch.save(model, 'models/'+LOG_NAME+'.pt')
+        torch.save(model, 'models/' + LOG_NAME + '.pt')
         best_val = val_loss
 
 # print("Done Training -- Starting Evaluation")
