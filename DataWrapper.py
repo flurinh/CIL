@@ -66,6 +66,8 @@ def create_batches(data, test_set, batch_size=10):
         indices_3 = [x for x in indices_2 if x not in training_indices]
         eval_indices = random.sample(indices_3, k=int(0.1 * len(data)))
 
+    assert len(set(test_indices).intersection(set(training_indices))) == 0, "test in training"
+    assert len(set(test_indices).intersection(set(eval_indices))) == 0, "test in training"
     # create batches, shuffle needs to be false because we use the sampler.
     training_data = DataLoader(data, shuffle=False, batch_size=batch_size, sampler=SubsetRandomSampler(training_indices))
     val_data = DataLoader(data, shuffle=False, batch_size=1, sampler=SubsetRandomSampler(eval_indices))

@@ -13,6 +13,7 @@ from skimage import io
 import json
 import argparse
 import time
+
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("--lr", nargs="?", type=float, dest="learning_rate", default="0.0005",
                     help="Learning rate of the model as float")
@@ -44,7 +45,7 @@ TRAIN_SET = args.dataset
 LOG_NAME = args.log_dir + "_" + str(int(time.time()))
 
 writer = SummaryWriter('logdir/' + LOG_NAME)
-json_saver = {'train_loss': dict(), 'val_loss': dict(), 'n_parameters': 0}
+json_saver = {'train_loss': dict(), 'val_loss': dict(), 'n_parameters': 0, 'test_indices': []}
 
 seed = 42
 np.random.seed(seed)
@@ -83,8 +84,9 @@ elif OPTIMIZER is 3:
     optimizer = torch.optim.Adadelta(model.parameters(), lr=1.0, rho=0.9, eps=1e-06, weight_decay=0.0005)
 
 elif OPTIMIZER is 4:
-    optimizer = torch.optim.RMSprop(model.parameters(), lr=LEARNING_RATE, alpha=0.99, eps=1e-08, weight_decay=0.0005, momentum=0.9,
-                        centered=False)
+    optimizer = torch.optim.RMSprop(model.parameters(), lr=LEARNING_RATE, alpha=0.99, eps=1e-08, weight_decay=0.0005,
+                                    momentum=0.9,
+                                    centered=False)
 
 model_parameters = filter(lambda p: p.requires_grad, model.parameters())
 params = sum([np.prod(p.size()) for p in model_parameters])
@@ -99,6 +101,8 @@ best_val = np.inf
 dummy_input = torch.zeros(1, 3, 400, 400)
 for n in range(NUMBER_EPOCHS):
     [training_data, val_data, test_data, test_indices] = create_batches(data, test_indices, batch_size=BATCH_SIZE)
+    json_saver['test_indices'] = test_indices
+    print(test_indices)
     print("Starting Epoch:\t", n)
     losses = []
     model.train()
@@ -116,6 +120,7 @@ for n in range(NUMBER_EPOCHS):
 
     writer.add_scalar('Training Loss', float(np.mean(losses)), n)
     json_saver['train_loss'][str(n)] = float(np.mean(losses))
+
     with torch.no_grad():
         val_loss = 0
         for i_batch, batch in enumerate(test_data):
@@ -139,8 +144,8 @@ for n in range(NUMBER_EPOCHS):
         torch.save(model.state_dict(), 'models/' + LOG_NAME + '.pt')
         best_val = val_loss
 
-with open('logdir/' + LOG_NAME + '.json', 'w') as fp:
-    json.dump(json_saver, fp)
+    with open('logdir/' + LOG_NAME + '.json', 'w') as fp:
+        json.dump(json_saver, fp)
 
 # print("Done Training -- Starting Evaluation")
 # for i_batch, batch in enumerate(test_data):

@@ -2,8 +2,9 @@ from PIL import Image
 import random
 import glob
 import os
+import numpy as np
 
-def transform_image_combined(image_1, image_2, counter):
+def transform_image_combined(image_1, image_2, counter, val=False):
     '''
     :param image_1:
     :param image_2:
@@ -20,14 +21,17 @@ def transform_image_combined(image_1, image_2, counter):
             transformed_image_input = opened_image_1.rotate(angle).transpose(flip)
             transformed_image_target = opened_image_2.rotate(angle).transpose(flip)
             transformed_image_target.convert('1')
-            transformed_image_input.save(augmented_input_dir + str(counter).zfill(5) + '.png')
-            transformed_image_target.save(augmented_target_dir + str(counter).zfill(5) + '.png')
+            if val is False:
+                transformed_image_input.save(augmented_input_dir + str(counter).zfill(5) + '.png')
+                transformed_image_target.save(augmented_target_dir + str(counter).zfill(5) + '.png')
+            else:
+                transformed_image_input.save(val_input_dir + str(counter).zfill(5) + '.png')
+                transformed_image_target.save(val_target_dir + str(counter).zfill(5) + '.png')
             counter += 1
             if counter % 100 == 0:
                 print(counter)
 
     return counter
-
 
 
 # point to the correct directories
@@ -39,8 +43,10 @@ augmented_root_dir = 'train_augmented'
 augmented_input_dir = augmented_root_dir + '/input/'
 augmented_target_dir = augmented_root_dir + '/target/'
 
+val_input_dir ='val/input/'
+val_target_dir = 'val/target/'
 for name in [original_root_dir, original_input_dir, original_target_dir,
-             augmented_root_dir, augmented_input_dir, augmented_target_dir]:
+             augmented_root_dir, augmented_input_dir, augmented_target_dir, 'val/', val_input_dir, val_target_dir]:
     if not os.path.isdir(name):
         os.mkdir(name)
 
@@ -48,9 +54,17 @@ for name in [original_root_dir, original_input_dir, original_target_dir,
 original_input_images = glob.glob(original_input_dir + '*.png')
 original_target_images = glob.glob(original_target_dir + '*.png')
 
+training_ind = np.asarray(random.sample(range(len(original_input_images)), k=int(0.8*len(original_input_images))))
+val_ind = np.asarray([x for x in training_ind if x not in training_ind])
 counter = 0
 # run through all the images, keep input and target zipped
-for original_input_image, original_target_image in zip(original_input_images, original_target_images):
-    counter = transform_image_combined(original_input_image,
-                                       original_target_image,
+for i in training_ind:
+    counter = transform_image_combined(original_input_images[i],
+                                       original_target_images[i],
+                                       counter)
+
+counter =0
+for i in val_ind:
+    counter = transform_image_combined(original_input_images[i],
+                                       original_target_images[i],
                                        counter)
