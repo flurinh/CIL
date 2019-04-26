@@ -14,6 +14,7 @@ def transform_image_combined(image_1, image_2, counter, rescale=False, val=False
 
     opened_image_1 = Image.open(image_1)
     opened_image_2 = Image.open(image_2)
+
     if rescale is True:
         opened_image_1 = opened_image_1.resize((608, 608), resample=Image.BICUBIC)
         opened_image_2 = opened_image_2.resize((608, 608), resample=Image.BICUBIC)
@@ -60,8 +61,8 @@ val_input_dir = 'val/input/'
 val_target_dir = 'val/target/'
 
 rescaled_root_dir = 'train_rescaled'
-rescaled_input_dir = augmented_root_dir + '/input/'
-rescaled_target_dir = augmented_root_dir + '/target/'
+rescaled_input_dir = rescaled_root_dir + '/input/'
+rescaled_target_dir = rescaled_root_dir + '/target/'
 
 rescaled_val_root_dir = 'val_rescaled'
 rescaled_val_input_dir = rescaled_val_root_dir + '/input/'
