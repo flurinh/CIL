@@ -1,8 +1,8 @@
 #!/bin/bash
 
-declare -a LearningRates=("0.0005")
+declare -a LearningRates=("0.001" "0.0005" "0.0001")
 declare -a BatchSizes=("1" "2")
-declare -a Optimizers=("1" "2" "3" "4")
+declare -a Optimizers=("2")
 # Iterate the string array using for loop
 for lr in ${LearningRates[@]}; do
    for bs in ${BatchSizes[@]}; do
