@@ -55,6 +55,7 @@ elif OPTIMIZER is 4:
 model_parameters = filter(lambda p: p.requires_grad, model.parameters())
 params = sum([np.prod(p.size()) for p in model_parameters])
 print("number of trainable paramters in model:", params)
+writer.add_text("Trainable Parameters", str(params))
 
 test_indices = []
 mean_losses = []
