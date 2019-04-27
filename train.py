@@ -38,7 +38,7 @@ parser.add_argument("--batch_size", nargs="?", type=int, dest="batch_size", defa
                     help="Batch size")
 parser.add_argument("--log_dir", nargs="?", type=str, dest="log_dir", default="model",
                     help="Log directory")
-parser.add_argument("--nr_episodes", nargs="?", type=int, dest="nr_epochs", default="50",
+parser.add_argument("--nr_epochs", nargs="?", type=int, dest="nr_epochs", default="50",
                     help="Number of epochs")
 parser.add_argument("--model", nargs="?", type=int, dest="model", default="1",
                     help="Model to run:\n"
@@ -210,7 +210,7 @@ for n in range(NUMBER_EPOCHS):
             else:
                 outputs = outputs[0].cpu().view((400, 400)).detach().numpy()
                 ground = batch['target'].cpu().view((400, 400)).detach().numpy()
-            outputs = np.asarray([[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs])
+            outputs = np.asarray([[0. if pixel < THRESHOLD else 1. for pixel in row] for row in outputs])
             diff = outputs - ground
             squared = np.square(diff)
             accuracy = np.sum(squared) / diff.size
@@ -240,6 +240,6 @@ print("STARTING EVALUATION")
 model.load_state_dict(torch.load(model_dir + '/model.pt'))
 model.cuda()
 model.eval()
-predictions = evaluate(save_dir, model)
+predictions = evaluate(save_dir, model, THRESHOLD)
 create_overlays(save_dir)
 mask2submission(LOG_NAME+"csv", predictions)
