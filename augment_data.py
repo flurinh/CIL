@@ -3,6 +3,7 @@ import random
 import glob
 import os
 import numpy as np
+import shutil
 
 
 def transform_image_combined(image_1, image_2, counter, rescale=False, val=False):
@@ -48,32 +49,33 @@ def transform_image_combined(image_1, image_2, counter, rescale=False, val=False
 
 
 # point to the correct directories
-original_root_dir = 'training'
+original_root_dir = 'data/training'
 original_input_dir = original_root_dir + '/images/'
 original_target_dir = original_root_dir + '/target/'
 
-augmented_root_dir = 'train_augmented'
+augmented_root_dir = 'data/train_augmented'
 augmented_input_dir = augmented_root_dir + '/input/'
 augmented_target_dir = augmented_root_dir + '/target/'
 
-val_root_dir = 'val'
-val_input_dir = 'val/input/'
-val_target_dir = 'val/target/'
+val_root_dir = 'data/val'
+val_input_dir = val_root_dir + '/input/'
+val_target_dir = val_root_dir + '/target/'
 
-rescaled_root_dir = 'train_rescaled'
+rescaled_root_dir = 'data/train_rescaled'
 rescaled_input_dir = rescaled_root_dir + '/input/'
 rescaled_target_dir = rescaled_root_dir + '/target/'
 
-rescaled_val_root_dir = 'val_rescaled'
+rescaled_val_root_dir = 'data/val_rescaled'
 rescaled_val_input_dir = rescaled_val_root_dir + '/input/'
 rescaled_val_target_dir = rescaled_val_root_dir + '/target/'
 
-for name in [original_root_dir, original_input_dir, original_target_dir,
-             augmented_root_dir, augmented_input_dir, augmented_target_dir, val_root_dir, val_input_dir,
+for name in [augmented_root_dir, augmented_input_dir, augmented_target_dir, val_root_dir, val_input_dir,
              val_target_dir, rescaled_root_dir, rescaled_val_root_dir, rescaled_input_dir, rescaled_target_dir,
              rescaled_val_input_dir, rescaled_val_target_dir]:
-    if not os.path.isdir(name):
-        os.mkdir(name)
+
+    if os.path.isdir(name):
+        shutil.rmtree(name)
+    os.mkdir(name)
 
 # load images
 original_input_images = glob.glob(original_input_dir + '*.png')

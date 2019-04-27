@@ -1,3 +1,5 @@
-1) Make run with more data (DeepRoad)
-2) Use more advanced U-Nets: https://raw.githubusercontent.com/LeeJunHyun/Image_Segmentation/master/network.py
+1) Restructure folders
+2) Make automatically evaluate
+3) augment by rotating 45 degrees and cropping accordingly.
+4) Make run with more data (DeepRoad)
 
