@@ -29,7 +29,7 @@ def mask_to_submission_strings(image_filename):
 
 
 def masks_to_submission(submission_filename, *image_filenames):
-    """Converts images into a submission file"""
+    """Converts input into a submission file"""
     with open(submission_filename, 'w') as f:
         f.write('id,prediction\n')
         for fn in image_filenames[0:]:
@@ -37,16 +37,15 @@ def masks_to_submission(submission_filename, *image_filenames):
 
 
 if __name__ == '__main__':
-    print(os.getcwd())
-    submission_filename = 'baseline_stupid.csv'
-    prediction_directory = "testresults/"
+    submission_filename = 'scaled_adam_unet.csv'
+    prediction_directory = "predictions_test/scaled"
 
     if not os.path.isdir(prediction_directory):
         print("No directory found. Run the predictions first")
 
     image_filenames = []
     for i in range(1, 244):
-        filename = prediction_directory + "/prediction" + str(i) + ".png"
+        filename = prediction_directory + "/test_prediction_" + str(i) + ".png"
         if not os.path.isfile(filename):
             continue
         image_filenames.append(filename)

@@ -13,6 +13,10 @@ from skimage import io
 import json
 import argparse
 import time
+from architecture_2 import *
+
+# TODO: MAKE SELECTION VIA BASH ON MODEL
+# TODO: SAVE MODEL NAME TO JSON
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("--lr", nargs="?", type=float, dest="learning_rate", default="0.0005",
@@ -25,10 +29,10 @@ parser.add_argument("--op", nargs="?", type=int, dest="optimizer", default="2",
                          "4: RMSProp")
 parser.add_argument("-d", nargs="?", type=int, dest="dataset", default="2",
                     help="Dataset to use: \n"
-                         "1: Only our training data\n"
-                         "2: Augmented training data\n"
-                         "3: Augmented training data + additional data (Thomas)\n"
-                         "4: Augmented training data rescaled to (608,608)")
+                         "1: Only our train data\n"
+                         "2: Augmented train data\n"
+                         "3: Augmented train data + additional data (Thomas)\n"
+                         "4: Augmented train data rescaled to (608,608)")
 parser.add_argument("-b", nargs="?", type=int, dest="batch_size", default="1",
                     help="Batch size")
 parser.add_argument("--log", nargs="?", type=str, dest="log_dir", default="model",
@@ -45,40 +49,78 @@ OPTIMIZER = args.optimizer
 TRAIN_SET = args.dataset
 LOG_NAME = args.log_dir + "_" + str(int(time.time()))
 
-writer = SummaryWriter('logdir/' + LOG_NAME)
-json_saver = {'train_loss': dict(), 'val_loss': dict(), 'n_parameters': 0, 'test_indices': []}
-
 seed = 42
 np.random.seed(seed)
 torch.manual_seed(seed)
 
+print("CREATING FOLDER STRUCTURE")
+data_dir = 'data/'
+if os.path.isdir('runs') is False:
+    os.mkdir('runs')
+
+if os.path.isdir('runs/' + LOG_NAME):
+    save_dir = 'runs/' + LOG_NAME + str(int(time.time()))
+
+else:
+    save_dir = 'runs/' + LOG_NAME
+model_dir = save_dir + '/model'
+results_dir = save_dir + '/results'
+os.mkdir(save_dir)
+os.mkdir(model_dir)
+os.mkdir(results_dir)
+
+print("CREATING LOG FILES")
+writer = SummaryWriter('logdir/' + LOG_NAME)
+json_saver = {'train_loss': dict(),
+              'val_loss': dict(),
+              'n_parameters': 0,
+              'start_time': int(time.time()),
+              'end_time': 0,
+              'run_time': 0,
+              'name': LOG_NAME,
+              'dataset': TRAIN_SET,
+              'number_epochs': NUMBER_EPOCHS,
+              'optimizer': OPTIMIZER,
+              'learningrate': LEARNING_RATE,
+              'train_set': TRAIN_SET,
+              'batchsize': BATCH_SIZE,
+              'model_save_epoch': 0}
+with open(save_dir + 'data.json', 'w') as fp:
+    json.dump(json_saver, fp)
+
 if TRAIN_SET is 1:
-    input_dir = 'training/input/'
-    target_dir = 'training/target/'
-    val_input_dir = 'val/input/'
-    val_target_dir = 'val/target/'
+    root_dir = 'original'
+    input_dir = root_dir + '/train/input/'
+    target_dir = root_dir + '/train/target/'
+    val_input_dir = root_dir + '/validate/input/'
+    val_target_dir = root_dir + '/validate/target/'
 
 elif TRAIN_SET is 2:
-    input_dir = 'train_augmented/input/'
-    target_dir = 'train_augmented/target/'
-    val_input_dir = 'val/input/'
-    val_target_dir = 'val/target/'
+    root_dir = 'augmented'
+    input_dir = root_dir + '/train/input/'
+    target_dir = root_dir + '/train/target/'
+    val_input_dir = root_dir + '/validate/input/'
+    val_target_dir = root_dir + '/validate/target/'
 
 elif TRAIN_SET is 3:
-    input_dir = 'DeepGlobe/input/'
-    target_dir = 'DeepGlobe/target/'
+    root_dir = 'DeepGlobe'
+    input_dir = root_dir + '/train/input/'
+    target_dir = root_dir + '/train/target/'
+    input_dir = root_dir + '/validate/input/'
+    target_dir = root_dir + '/validate/target/'
 
 elif TRAIN_SET is 4:
-    input_dir = 'train_rescaled/input/'
-    target_dir = 'train_rescaled/target/'
-    val_input_dir = 'val_rescaled/input/'
-    val_target_dir = 'val_rescaled/target/'
+    root_dir = 'scaled'
+    input_dir = root_dir + '/train/input/'
+    target_dir = root_dir + '/train/target/'
+    val_input_dir = root_dir + '/validate/input/'
+    val_target_dir = root_dir + '/validate/target/'
 
-
-train_data = DataWrapper(input_dir, target_dir, torch.cuda.is_available())
-val_data = DataWrapper(val_input_dir, val_target_dir, torch.cuda.is_available())
+train_data = DataWrapper(data_dir + input_dir, data_dir + target_dir, torch.cuda.is_available())
+val_data = DataWrapper(data_dir + val_input_dir, data_dir + val_target_dir, torch.cuda.is_available())
 
 model = UNet(3, 2)
+
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
     model.cuda()
@@ -115,8 +157,7 @@ best_val = np.inf
 
 for n in range(NUMBER_EPOCHS):
     training_data = create_batches(train_data, batch_size=BATCH_SIZE)
-    test_data = create_batches(val_data, batch_size=1)
-    print("Starting Epoch:\t", n)
+    validation_data = create_batches(val_data, batch_size=1)
     losses = []
     model.train()
     for i_batch, batch in enumerate(training_data):
@@ -128,7 +169,7 @@ for n in range(NUMBER_EPOCHS):
         loss.backward()
         optimizer.step()
         if i_batch % 100 == 0:
-            print("Epoch:\t", n, "\t Batch:\t", i_batch, "\tof\t", len(training_data))
+            print("Epoch:\t", n, "\tof\t", NUMBER_EPOCHS, "\t Batch:\t", i_batch, "\tof\t", len(training_data))
         losses.append(loss.cpu().detach().numpy())
 
     writer.add_scalar('Training Loss', float(np.mean(losses)), n)
@@ -136,10 +177,9 @@ for n in range(NUMBER_EPOCHS):
 
     with torch.no_grad():
         val_loss = 0
-        for i_batch, batch in enumerate(test_data):
+        for i_batch, batch in enumerate(validation_data):
             model.eval()
             inputs = batch['input']
-            print(inputs.size())
             outputs = model(inputs)
             if TRAIN_SET is 4:
                 outputs = outputs[0].cpu().view((608, 608)).detach().numpy()
@@ -153,16 +193,27 @@ for n in range(NUMBER_EPOCHS):
             accuracy = np.sum(squared) / diff.size
             val_loss += accuracy
 
-    val_loss /= len(test_data)
+    val_loss /= len(validation_data)
     writer.add_scalar('Validation Loss', float(val_loss), n)
     json_saver['val_loss'][str(n)] = float(val_loss)
 
     if val_loss < best_val:
-        torch.save(model.state_dict(), 'models/' + LOG_NAME + '.pt')
+        torch.save(model.state_dict(), model_dir + '/model.pt')
+        json_saver['model_save_epoch'] = n
         best_val = val_loss
 
-    with open('logdir/' + LOG_NAME + '.json', 'w') as fp:
+    with open(save_dir + '/data.json', 'w') as fp:
         json.dump(json_saver, fp)
+
+json_saver['end_time'] = int(time.time())
+json_saver['run_time'] = json_saver['end_time'] - json_saver['start_time']
+print("DONE TRAINING IN\t" + str(json_saver['run_time']) + "/t SECONDS")
+
+with open(save_dir + '/data.json', 'w') as fp:
+    json.dump(json_saver, fp)
+print("SAVED TRAINING DATA")
+print("STARTING EVALUATION")
+
 
 # print("Done Training -- Starting Evaluation")
 # for i_batch, batch in enumerate(test_data):

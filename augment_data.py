@@ -3,6 +3,7 @@ import random
 import glob
 import os
 import numpy as np
+import shutil
 
 
 def transform_image_combined(image_1, image_2, counter, rescale=False, val=False):
@@ -14,6 +15,7 @@ def transform_image_combined(image_1, image_2, counter, rescale=False, val=False
 
     opened_image_1 = Image.open(image_1)
     opened_image_2 = Image.open(image_2)
+
     if rescale is True:
         opened_image_1 = opened_image_1.resize((608, 608), resample=Image.BICUBIC)
         opened_image_2 = opened_image_2.resize((608, 608), resample=Image.BICUBIC)
@@ -47,34 +49,35 @@ def transform_image_combined(image_1, image_2, counter, rescale=False, val=False
 
 
 # point to the correct directories
-original_root_dir = 'training'
-original_input_dir = original_root_dir + '/images/'
+original_root_dir = 'data/original/train'
+original_input_dir = original_root_dir + '/input/'
 original_target_dir = original_root_dir + '/target/'
 
-augmented_root_dir = 'train_augmented'
+augmented_root_dir = 'data/augmented/train'
 augmented_input_dir = augmented_root_dir + '/input/'
 augmented_target_dir = augmented_root_dir + '/target/'
 
-val_root_dir = 'val'
-val_input_dir = 'val/input/'
-val_target_dir = 'val/target/'
+val_root_dir = 'data/augmented/validate'
+val_input_dir = val_root_dir + '/input/'
+val_target_dir = val_root_dir + '/target/'
 
-rescaled_root_dir = 'train_rescaled'
-rescaled_input_dir = augmented_root_dir + '/input/'
-rescaled_target_dir = augmented_root_dir + '/target/'
+rescaled_root_dir = 'data/scaled/train'
+rescaled_input_dir = rescaled_root_dir + '/input/'
+rescaled_target_dir = rescaled_root_dir + '/target/'
 
-rescaled_val_root_dir = 'val_rescaled'
+rescaled_val_root_dir = 'data/scaled/validate'
 rescaled_val_input_dir = rescaled_val_root_dir + '/input/'
 rescaled_val_target_dir = rescaled_val_root_dir + '/target/'
 
-for name in [original_root_dir, original_input_dir, original_target_dir,
-             augmented_root_dir, augmented_input_dir, augmented_target_dir, val_root_dir, val_input_dir,
+for name in ['data/augmented', 'data/scaled', augmented_root_dir, augmented_input_dir, augmented_target_dir, val_root_dir, val_input_dir,
              val_target_dir, rescaled_root_dir, rescaled_val_root_dir, rescaled_input_dir, rescaled_target_dir,
              rescaled_val_input_dir, rescaled_val_target_dir]:
-    if not os.path.isdir(name):
-        os.mkdir(name)
 
-# load images
+    if os.path.isdir(name):
+        shutil.rmtree(name)
+    os.mkdir(name)
+
+# load input
 original_input_images = glob.glob(original_input_dir + '*.png')
 original_target_images = glob.glob(original_target_dir + '*.png')
 

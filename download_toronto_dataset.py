@@ -22,11 +22,15 @@ def find_img(soup):
 def download(link, folder):
     print('Downloading', link)
     rq = requests.get(link, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:63.0) Gecko/20100101 Firefox/63.0'})
-    file=folder+link[-16:-7]+'.png'
+    if 'map' in folder:
+        file=folder+link[-15:-7]+'.png'
+    if 'sat' in folder:
+        file=folder+link[-16:-8]+'.png'    
     if rq.status_code == 200:
         img1 = Image.open(BytesIO(rq.content))
         img2 = imageio.imread(BytesIO(rq.content))
         print("datashape: "+str(img2.shape))
+        print("saved to:", file)
         img1.save(file)
         
 def dl(url, training_folder, waittime=1, start = 10078660, end = None):
@@ -45,15 +49,15 @@ def dl(url, training_folder, waittime=1, start = 10078660, end = None):
     for l in range(len(link_list)):
         if 'map' in url:
             'Downloading groundtruth maps...'
-            folder = training_folder + 'map_data'
+            folder = training_folder + 'map_data/'
         if 'sat' in url:
             'Downloading satellite images...'
-            folder = training_folder + 'sat_data'
+            folder = training_folder + 'sat_data/'
         download(link_list[l], folder)
         time.sleep(waittime)
         
 url_map = 'http://www.cs.toronto.edu/~vmnih/data/mass_roads/train/map/index.html'
 url_sat = 'http://www.cs.toronto.edu/~vmnih/data/mass_roads/train/sat/index.html'
 
-dl(url_map, training_folder = 'training/')
-dl(url_sat, training_folder = 'training/')
+#dl(url_map, training_folder = 'train/')
+dl(url_sat, training_folder = 'train/')

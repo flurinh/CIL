@@ -7,8 +7,8 @@ from skimage import io
 import matplotlib.image as mpimg
 from torch.utils.data import DataLoader
 
-PREDICT_TEST = False
-PREDICT_TRAINING = True
+PREDICT_TEST = True
+PREDICT_TRAINING = False
 
 def toTensorRGB(image):
     # swap color axis because
@@ -20,10 +20,9 @@ def toTensorRGB(image):
 
 
 input_dir = 'test/'
-target_dir = 'train_augmented/target/'
 
 model = UNet(3, 2)
-model.load_state_dict(torch.load('models/lr_0.0001_bs_1_opt_2_1556283988.pt'))
+model.load_state_dict(torch.load('models/lr_0.0001_bs_1_opt_2_1556294467.pt'))
 model.eval()
 # if torch.cuda.is_available():
 #     torch.cuda.empty_cache()
@@ -32,7 +31,7 @@ model.eval()
 #     print("CUDA unavailable, using CPU!")
 
 if PREDICT_TEST:
-    prediction_test_dir = "predictions_test/"
+    prediction_test_dir = "predictions_test/scaled/"
     if not os.path.isdir(prediction_test_dir):
         os.mkdir(prediction_test_dir)
 
@@ -61,7 +60,7 @@ if PREDICT_TRAINING:
         os.mkdir(prediction_training_dir)
 
     for i in range(1, 101):
-        filename = "training/images/satImage_" + str(i).zfill(3) + ".png"
+        filename = "train/input/satImage_" + str(i).zfill(3) + ".png"
         if not os.path.isfile(filename):
             continue
         print("Loading image {}".format(filename))

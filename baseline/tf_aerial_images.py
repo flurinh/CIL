@@ -20,7 +20,7 @@ VALIDATION_SIZE = 20  # Size of the validation set.
 SEED = 66478  # Set to None for random seed.
 BATCH_SIZE = 16 # 64
 NUM_EPOCHS = 1000
-RESTORE_MODEL = False # If True, restore existing model instead of training a new one
+RESTORE_MODEL = False # If True, restore existing model instead of train a new one
 RECORDING_STEP = 1000
 PREDICT_TRAINING = True
 PREDICT_VALIDATION = True
@@ -197,7 +197,7 @@ def main(argv=None):  # pylint: disable=unused-argument
     if not os.path.isdir("models"):
         os.mkdir("models")
 
-    data_dir = '../training/'
+    data_dir = '../train/'
     train_data_filename = data_dir + 'images/'
     train_labels_filename = data_dir + 'target/'
 
@@ -224,7 +224,7 @@ def main(argv=None):  # pylint: disable=unused-argument
             c1 = c1 + 1
     print('Number of data points per class: c0 = ' + str(c0) + ' c1 = ' + str(c1))
 
-    print('Balancing training data...')
+    print('Balancing train data...')
     min_c = min(c0, c1)
     idx0 = [i for i, j in enumerate(train_labels) if j[0] == 1]
     idx1 = [i for i, j in enumerate(train_labels) if j[1] == 1]
@@ -245,9 +245,9 @@ def main(argv=None):  # pylint: disable=unused-argument
             c1 = c1 + 1
     print('Number of data points per class: c0 = ' + str(c0) + ' c1 = ' + str(c1))
 
-    # This is where training samples and labels are fed to the graph.
-    # These placeholder nodes will be fed a batch of training data at each
-    # training step using the {feed_dict} argument to the Run() call below.
+    # This is where train samples and labels are fed to the graph.
+    # These placeholder nodes will be fed a batch of train data at each
+    # train step using the {feed_dict} argument to the Run() call below.
     train_data_node = tf.placeholder(
         tf.float32,
         shape=(BATCH_SIZE, IMG_PATCH_SIZE, IMG_PATCH_SIZE, NUM_CHANNELS))
@@ -338,7 +338,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
         return oimg
 
-    # We will replicate the model structure for the training subgraph, as well
+    # We will replicate the model structure for the train subgraph, as well
     # as the evaluation subgraphs, while sharing the trainable parameters.
     def model(data, train=False):
         """The Model definition."""
@@ -384,7 +384,7 @@ def main(argv=None):  # pylint: disable=unused-argument
         # Fully connected layer. Note that the '+' operation automatically
         # broadcasts the biases.
         hidden = tf.nn.relu(tf.matmul(reshape, fc1_weights) + fc1_biases)
-        # Add a 50% dropout during training only. Dropout also scales
+        # Add a 50% dropout during train only. Dropout also scales
         # activations such that no rescaling is needed at evaluation time.
         # if train:
         #    hidden = tf.nn.dropout(hidden, 0.5, seed=SEED)
@@ -478,7 +478,7 @@ def main(argv=None):  # pylint: disable=unused-argument
             summary_op = tf.summary.merge_all()
             summary_writer = tf.summary.FileWriter(FLAGS.train_dir, graph_def=s.graph_def)
             print('Initialized!')
-            # Loop through training steps.
+            # Loop through train steps.
             print('Total number of iterations = ' + str(int(num_epochs * train_size / BATCH_SIZE)))
 
             print("Number of trainable parameters: {}".format(
@@ -491,7 +491,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
             for iepoch in range(num_epochs):
 
-                # Permute training indices
+                # Permute train indices
                 perm_indices = numpy.random.permutation(training_indices)
 
                 mean_loss = []
@@ -536,7 +536,7 @@ def main(argv=None):  # pylint: disable=unused-argument
                 avg_error = numpy.mean(mean_error)
 
                 # Run predictions on validation set
-                print("Epoch {} \t Mean training loss: {} \t Mean validation loss: {}"
+                print("Epoch {} \t Mean train loss: {} \t Mean validation loss: {}"
                       .format(iepoch, numpy.array(mean_loss).mean(), numpy.array(mean_error).mean()))
 
                 summ = s.run(performance_summaries,
@@ -551,7 +551,7 @@ def main(argv=None):  # pylint: disable=unused-argument
                     best_error = avg_error
 
         if PREDICT_TRAINING:
-            print("Running prediction on training set")
+            print("Running prediction on train set")
             prediction_training_dir = "predictions_training/"
             if not os.path.isdir(prediction_training_dir):
                 os.mkdir(prediction_training_dir)
