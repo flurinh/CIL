@@ -14,6 +14,7 @@ import json
 import argparse
 import time
 from architecture_2 import *
+from evaluation import *
 
 # TODO: MAKE SELECTION VIA BASH ON MODEL
 # TODO: SAVE MODEL NAME TO JSON
@@ -78,6 +79,8 @@ results_dir = save_dir + '/results'
 os.mkdir(save_dir)
 os.mkdir(model_dir)
 os.mkdir(results_dir)
+os.mkdir(results_dir+"/prediction")
+os.mkdir(results_dir+"/overlay")
 
 print("CREATING LOG FILES")
 writer = SummaryWriter('logdir/' + LOG_NAME)
@@ -116,8 +119,8 @@ elif TRAIN_SET is 3:
     root_dir = 'DeepGlobe'
     input_dir = root_dir + '/train/input/'
     target_dir = root_dir + '/train/target/'
-    input_dir = root_dir + '/validate/input/'
-    target_dir = root_dir + '/validate/target/'
+    val_input_dir = root_dir + '/validate/input/'
+    val_target_dir = root_dir + '/validate/target/'
 
 elif TRAIN_SET is 4:
     root_dir = 'scaled'
@@ -233,19 +236,9 @@ with open(save_dir + '/data.json', 'w') as fp:
     json.dump(json_saver, fp)
 print("SAVED TRAINING DATA")
 print("STARTING EVALUATION")
+model.load_state_dict(torch.load(model_dir + '/model.pt'))
+model.eval()
 
-
-# print("Done Training -- Starting Evaluation")
-# for i_batch, batch in enumerate(test_data):
-#     if i_batch > 1:
-#         break
-#     inputs = batch['input']
-#     outputs = model(inputs)
-#     target = batch['target']
-#     outputs = outputs.cpu()
-#     outputs = outputs[0].view((400, 400)).detach().numpy()
-#     print(outputs)
-#     outputs = [[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs]
-#     print(outputs)
-#     print(target.cpu())
-#     evaluation_side_by_side_plot(inputs.cpu(), outputs, target.cpu())
+predictions = evaluate(save_dir, model)
+create_overlays(save_dir)
+mask2submission(LOG_NAME+"csv", predictions)
