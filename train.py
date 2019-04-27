@@ -15,6 +15,9 @@ import argparse
 import time
 from architecture_2 import *
 
+# TODO: MAKE SELECTION VIA BASH ON MODEL
+# TODO: SAVE MODEL NAME TO JSON
+
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("--lr", nargs="?", type=float, dest="learning_rate", default="0.0005",
                     help="Learning rate of the model as float")
@@ -47,38 +50,71 @@ TRAIN_SET = args.dataset
 LOG_NAME = args.log_dir + "_" + str(int(time.time()))
 
 writer = SummaryWriter('logdir/' + LOG_NAME)
-json_saver = {'train_loss': dict(), 'val_loss': dict(), 'n_parameters': 0, 'test_indices': []}
+json_saver = {'train_loss': dict(),
+              'val_loss': dict(),
+              'n_parameters': 0,
+              'start_time': int(time.time()),
+              'end_time': 0,
+              'run_time': 0,
+              'name': LOG_NAME,
+              'dataset': TRAIN_SET,
+              'number_epochs': NUMBER_EPOCHS,
+              'optimizer': OPTIMIZER,
+              'learningrate': LEARNING_RATE,
+              'train_set': TRAIN_SET,
+              'batchsize': BATCH_SIZE,
+              'model_save_epoch': 0}
 
 seed = 42
 np.random.seed(seed)
 torch.manual_seed(seed)
 data_dir = 'data/'
 
+if os.path.isdir('runs/' + LOG_NAME):
+    save_dir = 'runs/' + LOG_NAME + str(int(time.time()))
+
+else:
+    save_dir = 'runs/' + LOG_NAME
+model_dir = save_dir + '/model'
+results_dir = save_dir +'/results'
+os.mkdir(save_dir)
+os.mkdir(model_dir)
+os.mkdir(results_dir)
+
 if TRAIN_SET is 1:
-    input_dir = 'train/input/'
-    target_dir = 'train/target/'
-    val_input_dir = 'val/input/'
-    val_target_dir = 'val/target/'
+    root_dir = 'original'
+    assert os.path.isdir(root_dir), root_dir + " not found"
+    input_dir = root_dir + '/train/input/'
+    target_dir = root_dir + '/train/target/'
+    val_input_dir = root_dir + '/val/input/'
+    val_target_dir = root_dir + '/val/target/'
 
 elif TRAIN_SET is 2:
-    input_dir = 'train_augmented/input/'
-    target_dir = 'train_augmented/target/'
-    val_input_dir = 'val/input/'
-    val_target_dir = 'val/target/'
+    root_dir = 'augmented'
+    assert os.path.isdir(root_dir), root_dir + " not found"
+    input_dir = root_dir + '/train/input/'
+    target_dir = root_dir + '/train/target/'
+    val_input_dir = root_dir + '/val/input/'
+    val_target_dir = root_dir + 'val/target/'
 
 elif TRAIN_SET is 3:
-    input_dir = 'DeepGlobe/input/'
-    target_dir = 'DeepGlobe/target/'
+    root_dir = 'DeepGlobe'
+    assert os.path.isdir(root_dir), root_dir + " not found"
+    input_dir = root_dir + '/train/input/'
+    target_dir = root_dir + '/train/target/'
+    input_dir = root_dir + '/val/input/'
+    target_dir = root_dir + '/val/target/'
 
 elif TRAIN_SET is 4:
-    input_dir = 'train_rescaled/input/'
-    target_dir = 'train_rescaled/target/'
-    val_input_dir = 'val_rescaled/input/'
-    val_target_dir = 'val_rescaled/target/'
+    root_dir = 'scaled'
+    assert os.path.isdir(root_dir), root_dir + " not found"
+    input_dir = root_dir + 'train/input/'
+    target_dir = root_dir + 'train/target/'
+    val_input_dir = root_dir + 'val/input/'
+    val_target_dir = root_dir + 'val/target/'
 
-
-train_data = DataWrapper(data_dir+input_dir, data_dir+target_dir, torch.cuda.is_available())
-val_data = DataWrapper(data_dir+val_input_dir, data_dir+val_target_dir, torch.cuda.is_available())
+train_data = DataWrapper(data_dir + input_dir, data_dir + target_dir, torch.cuda.is_available())
+val_data = DataWrapper(data_dir + val_input_dir, data_dir + val_target_dir, torch.cuda.is_available())
 
 model = R2AttU_Net()
 
@@ -161,11 +197,19 @@ for n in range(NUMBER_EPOCHS):
     json_saver['val_loss'][str(n)] = float(val_loss)
 
     if val_loss < best_val:
-        torch.save(model.state_dict(), 'models/' + LOG_NAME + '.pt')
+        torch.save(model.state_dict(), model_dir + 'model.pt')
+        json_saver['model_save_epoch'] = n
         best_val = val_loss
 
-    with open('logdir/' + LOG_NAME + '.json', 'w') as fp:
+    with open(save_dir + 'data.json', 'w') as fp:
         json.dump(json_saver, fp)
+
+json_saver['end_time'] = int(time.time())
+json_saver['run_time'] = json_saver['end_time'] - json_saver['start_time']
+
+with open(save_dir + 'data.json', 'w') as fp:
+    json.dump(json_saver, fp)
+
 
 # print("Done Training -- Starting Evaluation")
 # for i_batch, batch in enumerate(test_data):
