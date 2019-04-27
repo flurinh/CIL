@@ -19,26 +19,34 @@ from architecture_2 import *
 # TODO: SAVE MODEL NAME TO JSON
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument("--lr", nargs="?", type=float, dest="learning_rate", default="0.0005",
+parser.add_argument("--learning_rate", nargs="?", type=float, dest="learning_rate", default="0.0005",
                     help="Learning rate of the model as float")
-parser.add_argument("--op", nargs="?", type=int, dest="optimizer", default="2",
+parser.add_argument("--optimizer", nargs="?", type=int, dest="optimizer", default="2",
                     help="Optimizer to use: \n"
                          "1: SGD\n"
                          "2: Adam\n"
                          "3: AdaDelta\n"
                          "4: RMSProp")
-parser.add_argument("-d", nargs="?", type=int, dest="dataset", default="2",
+parser.add_argument("--data", nargs="?", type=int, dest="dataset", default="2",
                     help="Dataset to use: \n"
                          "1: Only our train data\n"
                          "2: Augmented train data\n"
                          "3: Augmented train data + additional data (Thomas)\n"
                          "4: Augmented train data rescaled to (608,608)")
-parser.add_argument("-b", nargs="?", type=int, dest="batch_size", default="1",
+parser.add_argument("--batch_size", nargs="?", type=int, dest="batch_size", default="1",
                     help="Batch size")
-parser.add_argument("--log", nargs="?", type=str, dest="log_dir", default="model",
+parser.add_argument("--log_dir", nargs="?", type=str, dest="log_dir", default="model",
                     help="Log directory")
-parser.add_argument("-e", nargs="?", type=int, dest="nr_epochs", default="50",
+parser.add_argument("--nr_episodes", nargs="?", type=int, dest="nr_epochs", default="50",
                     help="Number of epochs")
+parser.add_argument("--model", nargs="?", type=int, dest="model", default="1",
+                    help="Model to run:\n"
+                         "1: U_Net\n"
+                         "2: R2U_Net\n"
+                         "3: AttU_Net\n"
+                         "4: R2AttU_Net")
+parser.add_argument("--thres", nargs="?", type=float, dest="threshold", default="0.5",
+                    help="Threshold for the validation set and test set")
 
 args = parser.parse_args()
 
@@ -48,6 +56,8 @@ NUMBER_EPOCHS = args.nr_epochs
 OPTIMIZER = args.optimizer
 TRAIN_SET = args.dataset
 LOG_NAME = args.log_dir + "_" + str(int(time.time()))
+MODEL = args.model
+THRESHOLD = args.threshold
 
 seed = 42
 np.random.seed(seed)
@@ -121,7 +131,17 @@ elif TRAIN_SET is 4:
 train_data = DataWrapper(data_dir + input_dir, data_dir + target_dir, torch.cuda.is_available())
 val_data = DataWrapper(data_dir + val_input_dir, data_dir + val_target_dir, torch.cuda.is_available())
 
-model = UNet(3, 2)
+if MODEL is 1:
+    model = UNet(3, 2)
+elif MODEL is 2:
+    model = R2U_Net()
+elif MODEL is 3:
+    model = AttU_Net()
+elif MODEL is 4:
+    model = R2AttU_Net()
+else:
+    print("Not a valid model")
+    exit(1)
 
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
