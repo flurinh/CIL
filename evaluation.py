@@ -15,7 +15,7 @@ def evaluate(save_dir, model, threshold=0.5):
         torch_image = torch.from_numpy(np.asarray([image_1])).type(torch.FloatTensor).cuda()
         return torch_image / 255.
 
-    prediction_test_dir = save_dir + "/results/prediction"
+    prediction_test_dir = save_dir + "/results/prediction/"
     for i in range(1, 224):
         filename = "data/original/test/test_" + str(i) + ".png"
         if not os.path.isfile(filename):
