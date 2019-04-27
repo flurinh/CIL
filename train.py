@@ -38,7 +38,7 @@ parser.add_argument("--batch_size", nargs="?", type=int, dest="batch_size", defa
                     help="Batch size")
 parser.add_argument("--log_dir", nargs="?", type=str, dest="log_dir", default="model",
                     help="Log directory")
-parser.add_argument("--nr_episodes", nargs="?", type=int, dest="nr_epochs", default="50",
+parser.add_argument("--nr_epochs", nargs="?", type=int, dest="nr_epochs", default="50",
                     help="Number of epochs")
 parser.add_argument("--model", nargs="?", type=int, dest="model", default="1",
                     help="Model to run:\n"
