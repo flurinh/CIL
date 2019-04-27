@@ -12,7 +12,6 @@ class DataWrapper(Dataset):
         self.input_dir = input_dir
         self.target_dir = target_dir
         self.cuda_available = cuda_available
-        print(self.cuda_available)
         assert len([name for name in os.listdir(self.input_dir)]) == len([name for name in os.listdir(
             self.target_dir)]), "Input and target directory dont have the same number of entries"
 

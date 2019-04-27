@@ -235,10 +235,11 @@ print("DONE TRAINING IN\t" + str(json_saver['run_time']) + "/t SECONDS")
 with open(save_dir + '/data.json', 'w') as fp:
     json.dump(json_saver, fp)
 print("SAVED TRAINING DATA")
+
 print("STARTING EVALUATION")
 model.load_state_dict(torch.load(model_dir + '/model.pt'))
+model.cuda()
 model.eval()
-
 predictions = evaluate(save_dir, model)
 create_overlays(save_dir)
 mask2submission(LOG_NAME+"csv", predictions)

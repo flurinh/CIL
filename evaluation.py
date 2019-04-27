@@ -12,7 +12,7 @@ def evaluate(save_dir, model, threshold=0.5):
         # numpy image: H x W x C
         # torch image: C X H X W
         image_1 = image.transpose((2, 0, 1))
-        torch_image = torch.from_numpy(np.asarray([image_1])).type(torch.FloatTensor)
+        torch_image = torch.from_numpy(np.asarray([image_1])).type(torch.FloatTensor).cuda()
         return torch_image / 255.
 
     prediction_test_dir = save_dir + "/results/prediction"
