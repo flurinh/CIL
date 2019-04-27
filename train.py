@@ -38,7 +38,7 @@ parser.add_argument("--batch_size", nargs="?", type=int, dest="batch_size", defa
                     help="Batch size")
 parser.add_argument("--log_dir", nargs="?", type=str, dest="log_dir", default="model",
                     help="Log directory")
-parser.add_argument("--nr_epochs", nargs="?", type=int, dest="nr_epochs", default="50",
+parser.add_argument("--nr_epochs", nargs="?", type=int, dest="nr_epochs", default="1",
                     help="Number of epochs")
 parser.add_argument("--model", nargs="?", type=int, dest="model", default="1",
                     help="Model to run:\n"
@@ -98,7 +98,7 @@ json_saver = {'train_loss': dict(),
               'train_set': TRAIN_SET,
               'batchsize': BATCH_SIZE,
               'model_save_epoch': 0}
-with open(save_dir + 'data.json', 'w') as fp:
+with open(save_dir + '/data.json', 'w') as fp:
     json.dump(json_saver, fp)
 
 if TRAIN_SET is 1:
