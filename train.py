@@ -49,6 +49,27 @@ OPTIMIZER = args.optimizer
 TRAIN_SET = args.dataset
 LOG_NAME = args.log_dir + "_" + str(int(time.time()))
 
+seed = 42
+np.random.seed(seed)
+torch.manual_seed(seed)
+
+print("CREATING FOLDER STRUCTURE")
+data_dir = 'data/'
+if os.path.isdir('runs') is False:
+    os.mkdir('runs')
+
+if os.path.isdir('runs/' + LOG_NAME):
+    save_dir = 'runs/' + LOG_NAME + str(int(time.time()))
+
+else:
+    save_dir = 'runs/' + LOG_NAME
+model_dir = save_dir + '/model'
+results_dir = save_dir + '/results'
+os.mkdir(save_dir)
+os.mkdir(model_dir)
+os.mkdir(results_dir)
+
+print("CREATING LOG FILES")
 writer = SummaryWriter('logdir/' + LOG_NAME)
 json_saver = {'train_loss': dict(),
               'val_loss': dict(),
@@ -64,59 +85,41 @@ json_saver = {'train_loss': dict(),
               'train_set': TRAIN_SET,
               'batchsize': BATCH_SIZE,
               'model_save_epoch': 0}
-
-seed = 42
-np.random.seed(seed)
-torch.manual_seed(seed)
-data_dir = 'data/'
-
-if os.path.isdir('runs/' + LOG_NAME):
-    save_dir = 'runs/' + LOG_NAME + str(int(time.time()))
-
-else:
-    save_dir = 'runs/' + LOG_NAME
-model_dir = save_dir + '/model'
-results_dir = save_dir +'/results'
-os.mkdir(save_dir)
-os.mkdir(model_dir)
-os.mkdir(results_dir)
+with open(save_dir + 'data.json', 'w') as fp:
+    json.dump(json_saver, fp)
 
 if TRAIN_SET is 1:
     root_dir = 'original'
-    assert os.path.isdir(root_dir), root_dir + " not found"
     input_dir = root_dir + '/train/input/'
     target_dir = root_dir + '/train/target/'
-    val_input_dir = root_dir + '/val/input/'
-    val_target_dir = root_dir + '/val/target/'
+    val_input_dir = root_dir + '/validate/input/'
+    val_target_dir = root_dir + '/validate/target/'
 
 elif TRAIN_SET is 2:
     root_dir = 'augmented'
-    assert os.path.isdir(root_dir), root_dir + " not found"
     input_dir = root_dir + '/train/input/'
     target_dir = root_dir + '/train/target/'
-    val_input_dir = root_dir + '/val/input/'
-    val_target_dir = root_dir + 'val/target/'
+    val_input_dir = root_dir + '/validate/input/'
+    val_target_dir = root_dir + '/validate/target/'
 
 elif TRAIN_SET is 3:
     root_dir = 'DeepGlobe'
-    assert os.path.isdir(root_dir), root_dir + " not found"
     input_dir = root_dir + '/train/input/'
     target_dir = root_dir + '/train/target/'
-    input_dir = root_dir + '/val/input/'
-    target_dir = root_dir + '/val/target/'
+    input_dir = root_dir + '/validate/input/'
+    target_dir = root_dir + '/validate/target/'
 
 elif TRAIN_SET is 4:
     root_dir = 'scaled'
-    assert os.path.isdir(root_dir), root_dir + " not found"
-    input_dir = root_dir + 'train/input/'
-    target_dir = root_dir + 'train/target/'
-    val_input_dir = root_dir + 'val/input/'
-    val_target_dir = root_dir + 'val/target/'
+    input_dir = root_dir + '/train/input/'
+    target_dir = root_dir + '/train/target/'
+    val_input_dir = root_dir + '/validate/input/'
+    val_target_dir = root_dir + '/validate/target/'
 
 train_data = DataWrapper(data_dir + input_dir, data_dir + target_dir, torch.cuda.is_available())
 val_data = DataWrapper(data_dir + val_input_dir, data_dir + val_target_dir, torch.cuda.is_available())
 
-model = R2AttU_Net()
+model = UNet(3, 2)
 
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
@@ -154,8 +157,7 @@ best_val = np.inf
 
 for n in range(NUMBER_EPOCHS):
     training_data = create_batches(train_data, batch_size=BATCH_SIZE)
-    test_data = create_batches(val_data, batch_size=1)
-    print("Starting Epoch:\t", n)
+    validation_data = create_batches(val_data, batch_size=1)
     losses = []
     model.train()
     for i_batch, batch in enumerate(training_data):
@@ -167,7 +169,7 @@ for n in range(NUMBER_EPOCHS):
         loss.backward()
         optimizer.step()
         if i_batch % 100 == 0:
-            print("Epoch:\t", n, "\t Batch:\t", i_batch, "\tof\t", len(training_data))
+            print("Epoch:\t", n, "\tof\t", NUMBER_EPOCHS, "\t Batch:\t", i_batch, "\tof\t", len(training_data))
         losses.append(loss.cpu().detach().numpy())
 
     writer.add_scalar('Training Loss', float(np.mean(losses)), n)
@@ -175,10 +177,9 @@ for n in range(NUMBER_EPOCHS):
 
     with torch.no_grad():
         val_loss = 0
-        for i_batch, batch in enumerate(test_data):
+        for i_batch, batch in enumerate(validation_data):
             model.eval()
             inputs = batch['input']
-            print(inputs.size())
             outputs = model(inputs)
             if TRAIN_SET is 4:
                 outputs = outputs[0].cpu().view((608, 608)).detach().numpy()
@@ -192,7 +193,7 @@ for n in range(NUMBER_EPOCHS):
             accuracy = np.sum(squared) / diff.size
             val_loss += accuracy
 
-    val_loss /= len(test_data)
+    val_loss /= len(validation_data)
     writer.add_scalar('Validation Loss', float(val_loss), n)
     json_saver['val_loss'][str(n)] = float(val_loss)
 
@@ -206,9 +207,12 @@ for n in range(NUMBER_EPOCHS):
 
 json_saver['end_time'] = int(time.time())
 json_saver['run_time'] = json_saver['end_time'] - json_saver['start_time']
+print("DONE TRAINING IN\t" + str(json_saver['run_time']) + "/t SECONDS")
 
 with open(save_dir + 'data.json', 'w') as fp:
     json.dump(json_saver, fp)
+print("SAVED TRAINING DATA")
+print("STARTING EVALUATION")
 
 
 # print("Done Training -- Starting Evaluation")
