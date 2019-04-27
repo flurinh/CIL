@@ -198,18 +198,18 @@ for n in range(NUMBER_EPOCHS):
     json_saver['val_loss'][str(n)] = float(val_loss)
 
     if val_loss < best_val:
-        torch.save(model.state_dict(), model_dir + 'model.pt')
+        torch.save(model.state_dict(), model_dir + '/model.pt')
         json_saver['model_save_epoch'] = n
         best_val = val_loss
 
-    with open(save_dir + 'data.json', 'w') as fp:
+    with open(save_dir + '/data.json', 'w') as fp:
         json.dump(json_saver, fp)
 
 json_saver['end_time'] = int(time.time())
 json_saver['run_time'] = json_saver['end_time'] - json_saver['start_time']
 print("DONE TRAINING IN\t" + str(json_saver['run_time']) + "/t SECONDS")
 
-with open(save_dir + 'data.json', 'w') as fp:
+with open(save_dir + '/data.json', 'w') as fp:
     json.dump(json_saver, fp)
 print("SAVED TRAINING DATA")
 print("STARTING EVALUATION")
