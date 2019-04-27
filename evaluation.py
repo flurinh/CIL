@@ -31,7 +31,7 @@ def evaluate(save_dir, model, threshold=0.5):
         outputs = np.asarray(outputs)
         out_image = Image.fromarray(outputs)
         out_image.convert('RGB').save(prediction_test_dir + str(i) + ".png")
-    return
+    return prediction_test_dir
 
 
 def create_overlays(save_dir):

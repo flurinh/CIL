@@ -14,6 +14,7 @@ import json
 import argparse
 import time
 from architecture_2 import *
+from evaluation import *
 
 # TODO: MAKE SELECTION VIA BASH ON MODEL
 # TODO: SAVE MODEL NAME TO JSON
@@ -238,3 +239,6 @@ print("STARTING EVALUATION")
 model.load_state_dict(torch.load(model_dir + '/model.pt'))
 model.eval()
 
+predictions = evaluate(save_dir, model)
+create_overlays(save_dir)
+mask2submission(LOG_NAME+"csv", predictions)
