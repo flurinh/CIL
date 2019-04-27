@@ -210,7 +210,7 @@ for n in range(NUMBER_EPOCHS):
             else:
                 outputs = outputs[0].cpu().view((400, 400)).detach().numpy()
                 ground = batch['target'].cpu().view((400, 400)).detach().numpy()
-            outputs = np.asarray([[0. if pixel < 0.5 else 1. for pixel in row] for row in outputs])
+            outputs = np.asarray([[0. if pixel < THRESHOLD else 1. for pixel in row] for row in outputs])
             diff = outputs - ground
             squared = np.square(diff)
             accuracy = np.sum(squared) / diff.size
@@ -239,6 +239,6 @@ print("STARTING EVALUATION")
 model.load_state_dict(torch.load(model_dir + '/model.pt'))
 model.eval()
 
-predictions = evaluate(save_dir, model)
+predictions = evaluate(save_dir, model, THRESHOLD)
 create_overlays(save_dir)
 mask2submission(LOG_NAME+"csv", predictions)
