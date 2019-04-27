@@ -132,6 +132,8 @@ elif TRAIN_SET is 4:
 train_data = DataWrapper(data_dir + input_dir, data_dir + target_dir, torch.cuda.is_available())
 val_data = DataWrapper(data_dir + val_input_dir, data_dir + val_target_dir, torch.cuda.is_available())
 
+VAL_IMAGE_SIZE = val_data.image_size()
+
 if MODEL is 1:
     model = UNet(3, 2)
 elif MODEL is 2:
@@ -204,12 +206,8 @@ for n in range(NUMBER_EPOCHS):
             model.eval()
             inputs = batch['input']
             outputs = model(inputs)
-            if TRAIN_SET is 4:
-                outputs = outputs[0].cpu().view((608, 608)).detach().numpy()
-                ground = batch['target'].cpu().view((608, 608)).detach().numpy()
-            else:
-                outputs = outputs[0].cpu().view((400, 400)).detach().numpy()
-                ground = batch['target'].cpu().view((400, 400)).detach().numpy()
+            outputs = outputs[0].cpu().view(VAL_IMAGE_SIZE).detach().numpy()
+            ground = batch['target'].cpu().view(VAL_IMAGE_SIZE).detach().numpy()
             outputs = np.asarray([[0. if pixel < THRESHOLD else 1. for pixel in row] for row in outputs])
             diff = outputs - ground
             squared = np.square(diff)
