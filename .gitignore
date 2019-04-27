@@ -18,3 +18,5 @@ sample_submission.csv
 /val/
 /train_rescaled/
 /val_rescaled/
+/data/augmented/
+/data/scaled/

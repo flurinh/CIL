@@ -2,4 +2,5 @@
 2) Make automatically evaluate
 3) augment by rotating 45 degrees and cropping accordingly.
 4) Make run with more data (DeepRoad)
+5) do proper cross-validation
 

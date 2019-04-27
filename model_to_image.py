@@ -60,7 +60,7 @@ if PREDICT_TRAINING:
         os.mkdir(prediction_training_dir)
 
     for i in range(1, 101):
-        filename = "training/images/satImage_" + str(i).zfill(3) + ".png"
+        filename = "train/input/satImage_" + str(i).zfill(3) + ".png"
         if not os.path.isfile(filename):
             continue
         print("Loading image {}".format(filename))

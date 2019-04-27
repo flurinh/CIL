@@ -100,8 +100,8 @@ if __name__ == "__main__":
     if PREDICT_TRAINING:
         for i in range(1, 101):
             filename_predictions = "predictions_training/augmented/test_prediction_" + str(i) + ".png"
-            filename_images = "training/images/satImage_" + str(i).zfill(3) + ".png"
-            filename_ground_truth = "training/target/satImage_" + str(i).zfill(3) + ".png"
+            filename_images = "train/images/satImage_" + str(i).zfill(3) + ".png"
+            filename_ground_truth = "train/target/satImage_" + str(i).zfill(3) + ".png"
             print("Loading image {}".format(filename_images))
 
             prediction = Image.open(filename_predictions)

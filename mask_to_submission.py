@@ -29,7 +29,7 @@ def mask_to_submission_strings(image_filename):
 
 
 def masks_to_submission(submission_filename, *image_filenames):
-    """Converts images into a submission file"""
+    """Converts input into a submission file"""
     with open(submission_filename, 'w') as f:
         f.write('id,prediction\n')
         for fn in image_filenames[0:]:

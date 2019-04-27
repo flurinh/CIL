@@ -95,10 +95,10 @@ def plot_images(idx):
     img.show()
 
 # point to the correct directories
-original_root_dir = 'training'
+original_root_dir = 'train'
 only_augmentation_data = False #If true only loads the toronto dataset
 
-original_input_dir = original_root_dir + '/images/'
+original_input_dir = original_root_dir + '/input/'
 original_target_dir = original_root_dir + '/target/'
 
 input_dir2 = original_root_dir+'/sat_data/'
@@ -118,7 +118,7 @@ for name in valid:
     if not os.path.isdir(name):
         os.mkdir(name)
         
-# load images
+# load input
 if only_augmentation_data:
     original_input_images = glob.glob(input_dir2 + '*.png')
     original_target_images = glob.glob(target_dir2 + '*.png')
@@ -126,13 +126,13 @@ else:
     original_input_images = glob.glob(original_input_dir + '*.png') + glob.glob(input_dir2 + '*.png')
     original_target_images = glob.glob(original_target_dir + '*.png') + glob.glob(target_dir2 + '*.png')
     print("Using all the data!")
-# run through all the images, keep input and target zipped
+# run through all the input, keep input and target zipped
 counter = 0
 for original_input_image, original_target_image in zip(original_input_images, original_target_images):
     counter = transform_image_combined(original_input_image,
                                        original_target_image,
                                        counter)
-print("Total number of images generated:", counter)
+print("Total number of input generated:", counter)
 # Check our results
 # print('Checking our results...")
 # plot_images(np.random.randint(0, counter))

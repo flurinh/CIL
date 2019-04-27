@@ -49,27 +49,27 @@ def transform_image_combined(image_1, image_2, counter, rescale=False, val=False
 
 
 # point to the correct directories
-original_root_dir = 'data/training'
-original_input_dir = original_root_dir + '/images/'
+original_root_dir = 'data/original/train'
+original_input_dir = original_root_dir + '/input/'
 original_target_dir = original_root_dir + '/target/'
 
-augmented_root_dir = 'data/train_augmented'
+augmented_root_dir = 'data/augmented/train'
 augmented_input_dir = augmented_root_dir + '/input/'
 augmented_target_dir = augmented_root_dir + '/target/'
 
-val_root_dir = 'data/val'
+val_root_dir = 'data/augmented/validate'
 val_input_dir = val_root_dir + '/input/'
 val_target_dir = val_root_dir + '/target/'
 
-rescaled_root_dir = 'data/train_rescaled'
+rescaled_root_dir = 'data/scaled/train'
 rescaled_input_dir = rescaled_root_dir + '/input/'
 rescaled_target_dir = rescaled_root_dir + '/target/'
 
-rescaled_val_root_dir = 'data/val_rescaled'
+rescaled_val_root_dir = 'data/scaled/validate'
 rescaled_val_input_dir = rescaled_val_root_dir + '/input/'
 rescaled_val_target_dir = rescaled_val_root_dir + '/target/'
 
-for name in [augmented_root_dir, augmented_input_dir, augmented_target_dir, val_root_dir, val_input_dir,
+for name in ['data/augmented', 'data/scaled', augmented_root_dir, augmented_input_dir, augmented_target_dir, val_root_dir, val_input_dir,
              val_target_dir, rescaled_root_dir, rescaled_val_root_dir, rescaled_input_dir, rescaled_target_dir,
              rescaled_val_input_dir, rescaled_val_target_dir]:
 
@@ -77,7 +77,7 @@ for name in [augmented_root_dir, augmented_input_dir, augmented_target_dir, val_
         shutil.rmtree(name)
     os.mkdir(name)
 
-# load images
+# load input
 original_input_images = glob.glob(original_input_dir + '*.png')
 original_target_images = glob.glob(original_target_dir + '*.png')
 

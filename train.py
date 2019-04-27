@@ -26,10 +26,10 @@ parser.add_argument("--op", nargs="?", type=int, dest="optimizer", default="2",
                          "4: RMSProp")
 parser.add_argument("-d", nargs="?", type=int, dest="dataset", default="2",
                     help="Dataset to use: \n"
-                         "1: Only our training data\n"
-                         "2: Augmented training data\n"
-                         "3: Augmented training data + additional data (Thomas)\n"
-                         "4: Augmented training data rescaled to (608,608)")
+                         "1: Only our train data\n"
+                         "2: Augmented train data\n"
+                         "3: Augmented train data + additional data (Thomas)\n"
+                         "4: Augmented train data rescaled to (608,608)")
 parser.add_argument("-b", nargs="?", type=int, dest="batch_size", default="1",
                     help="Batch size")
 parser.add_argument("--log", nargs="?", type=str, dest="log_dir", default="model",
@@ -52,10 +52,11 @@ json_saver = {'train_loss': dict(), 'val_loss': dict(), 'n_parameters': 0, 'test
 seed = 42
 np.random.seed(seed)
 torch.manual_seed(seed)
+data_dir = 'data/'
 
 if TRAIN_SET is 1:
-    input_dir = 'training/input/'
-    target_dir = 'training/target/'
+    input_dir = 'train/input/'
+    target_dir = 'train/target/'
     val_input_dir = 'val/input/'
     val_target_dir = 'val/target/'
 
@@ -76,8 +77,8 @@ elif TRAIN_SET is 4:
     val_target_dir = 'val_rescaled/target/'
 
 
-train_data = DataWrapper(input_dir, target_dir, torch.cuda.is_available())
-val_data = DataWrapper(val_input_dir, val_target_dir, torch.cuda.is_available())
+train_data = DataWrapper(data_dir+input_dir, data_dir+target_dir, torch.cuda.is_available())
+val_data = DataWrapper(data_dir+val_input_dir, data_dir+val_target_dir, torch.cuda.is_available())
 
 model = R2AttU_Net()
 

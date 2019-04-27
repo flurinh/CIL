@@ -59,5 +59,5 @@ def dl(url, training_folder, waittime=1, start = 10078660, end = None):
 url_map = 'http://www.cs.toronto.edu/~vmnih/data/mass_roads/train/map/index.html'
 url_sat = 'http://www.cs.toronto.edu/~vmnih/data/mass_roads/train/sat/index.html'
 
-#dl(url_map, training_folder = 'training/')
-dl(url_sat, training_folder = 'training/')
+#dl(url_map, training_folder = 'train/')
+dl(url_sat, training_folder = 'train/')
