@@ -20,7 +20,7 @@ declare -a Optimizers=("2")
 declare -a TrainingSet=("2")
 declare -a BatchSizes=("1")
 declare -a Models=("1")
-declare -a Thresholds=("0.5")
+declare -a Thresholds=("0.25 0.4 0.5 0.6 0.75")
 declare -a NrEpochs=("30")
 # Iterate the string array using for loop
 for lr in ${LearningRates[@]}; do
@@ -40,6 +40,7 @@ for lr in ${LearningRates[@]}; do
                             --log_dir $name \
                             --model $model \
                             --thres $thres \
+                            echo name
                             sleep 1
                         done
                     done
