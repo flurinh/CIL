@@ -48,6 +48,11 @@ class DataWrapper(Dataset):
         sample = {'input': toTensorRGB(self, input_image), 'target': toTensorBW(self, target_image)}
         return sample
 
+    def image_size(self):
+        input_img_name = os.path.join(self.input_dir, str(1).zfill(5) + '.png')
+        input_image = io.imread(input_img_name)
+        return input_image.shape
+
 
 def create_batches(data, batch_size=10):
     # create batches, shuffle needs to be false because we use the sampler.
