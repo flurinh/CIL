@@ -63,6 +63,7 @@ THRESHOLD = args.threshold
 seed = 42
 np.random.seed(seed)
 torch.manual_seed(seed)
+random.seed(seed)
 
 print("CREATING FOLDER STRUCTURE")
 data_dir = 'data/'
