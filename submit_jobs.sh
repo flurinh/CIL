@@ -21,6 +21,7 @@ declare -a TrainingSet=("2")
 declare -a BatchSizes=("1")
 declare -a Models=("1")
 declare -a Thresholds=("0.5")
+declare -a NrEpochs=("30")
 # Iterate the string array using for loop
 for lr in ${LearningRates[@]}; do
     for bs in ${BatchSizes[@]}; do
@@ -28,17 +29,19 @@ for lr in ${LearningRates[@]}; do
             for ts in ${TrainingSet[@]}; do
                 for thres in ${Thresholds[@]}; do
                     for model in ${Models[@]}; do
-                        name="lr_${lr}_bs_${bs}_opt_${opt}_data_${ts}_model_${model}_thres_${thres}"
-                        bsub -n 4 -W 25:00 -R "rusage[mem=4096, ngpus_excl_p=2]" python train.py \
-                        --learning_rate $lr \
-                        --batch_size $bs \
-                        --nr_epochs 50 \
-                        --optimizer $opt \
-                        --data $ts \
-                        --log_dir $name \
-                        --model $model \
-                        --thres $thres \
-                        sleep 1
+                        for epoch in ${NrEpochs[@]}; do
+                            name="lr_${lr}_bs_${bs}_epochs_${epoch}_opt_${opt}_data_${ts}_model_${model}_thres_${thres}"
+                            bsub -n 4 -W 25:00 -R "rusage[mem=4096, ngpus_excl_p=2]" python train.py \
+                            --learning_rate $lr \
+                            --batch_size $bs \
+                            --nr_epochs $epoch \
+                            --optimizer $opt \
+                            --data $ts \
+                            --log_dir $name \
+                            --model $model \
+                            --thres $thres \
+                            sleep 1
+                        done
                     done
                 done
             done
