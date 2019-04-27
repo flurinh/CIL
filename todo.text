@@ -3,3 +3,7 @@
 5) do proper cross-validation
 6) combined architecture files and make an architecture_utils.py for the functions and subclasses
 7) Implement early stopping
+8) make directories in separate file
+9) create setup.py
+10) rename all training images for consistency (original)
+11) create patched dataset

@@ -6,7 +6,8 @@ import numpy as np
 import shutil
 
 def rotate_by_45(image_1):
-    transformed_image = image_1.rotate(45)
+    transformed_image = image_1
+    # transformed_image = image_1.rotate(45)
     width, height = image_1.size
     left = (width - 282) / 2
     top = (height - 282) / 2
@@ -32,13 +33,17 @@ def transform_image_combined(image_1, image_2, counter, rescale=False, val=False
         opened_image_1 = opened_image_1.resize((608, 608), resample=Image.BICUBIC)
         opened_image_2 = opened_image_2.resize((608, 608), resample=Image.BICUBIC)
 
-    rotation_angles = [0, 90, 180, 270]
+    rotation_angles = [0, 45, 90, 135, 180, 225, 270, 315]
     flip_direction = [Image.FLIP_LEFT_RIGHT, Image.FLIP_TOP_BOTTOM, Image.TRANSPOSE]
     for angle in rotation_angles:
         for flip in flip_direction:
             transformed_image_input = opened_image_1.rotate(angle).transpose(flip)
             transformed_image_target = opened_image_2.rotate(angle).transpose(flip)
             transformed_image_target.convert('1')
+            if angle % 90 != 0:
+                transformed_image_input = rotate_by_45(transformed_image_input)
+                transformed_image_target = rotate_by_45(transformed_image_target)
+
             if val is False and rescale is False:
                 transformed_image_input.save(augmented_input_dir + str(counter).zfill(5) + '.png')
                 transformed_image_target.save(augmented_target_dir + str(counter).zfill(5) + '.png')
@@ -56,25 +61,26 @@ def transform_image_combined(image_1, image_2, counter, rescale=False, val=False
             counter += 1
             if counter % 100 == 0:
                 print(counter)
-    transformed_image_input = rotate_by_45(opened_image_1)
-    transformed_image_target = rotate_by_45(opened_image_2)
-    if val is False and rescale is False:
-        transformed_image_input.save(augmented_input_dir + str(counter).zfill(5) + '.png')
-        transformed_image_target.save(augmented_target_dir + str(counter).zfill(5) + '.png')
-        counter += 1
-    if val is True and rescale is False:
-        transformed_image_input.save(val_input_dir + str(counter).zfill(5) + '.png')
-        transformed_image_target.save(val_input_dir + str(counter).zfill(5) + '.png')
-        counter += 1
-    if val is False and rescale is True:
-        transformed_image_input.save(rescaled_input_dir + str(counter).zfill(5) + '.png')
-        transformed_image_target.save(rescaled_target_dir + str(counter).zfill(5) + '.png')
-        counter += 1
-    if val is True and rescale is True:
-        transformed_image_input.save(rescaled_val_input_dir + str(counter).zfill(5) + '.png')
-        transformed_image_target.save(rescaled_val_input_dir + str(counter).zfill(5) + '.png')
-        counter += 1
 
+    # transformed_image_input = rotate_by_45(opened_image_1)
+    # transformed_image_target = rotate_by_45(opened_image_2)
+    # if val is False and rescale is False:
+    #     transformed_image_input.save(augmented_input_dir + str(counter).zfill(5) + '.png')
+    #     transformed_image_target.save(augmented_target_dir + str(counter).zfill(5) + '.png')
+    #
+    # if val is True and rescale is False:
+    #     transformed_image_input.save(val_input_dir + str(counter).zfill(5) + '.png')
+    #     transformed_image_target.save(val_input_dir + str(counter).zfill(5) + '.png')
+    #
+    # if val is False and rescale is True:
+    #     transformed_image_input.save(rescaled_input_dir + str(counter).zfill(5) + '.png')
+    #     transformed_image_target.save(rescaled_target_dir + str(counter).zfill(5) + '.png')
+    #
+    # if val is True and rescale is True:
+    #     transformed_image_input.save(rescaled_val_input_dir + str(counter).zfill(5) + '.png')
+    #     transformed_image_target.save(rescaled_val_input_dir + str(counter).zfill(5) + '.png')
+    #
+    # counter += 1
     return counter
 
 
@@ -132,7 +138,6 @@ for i in val_ind:
     counter = transform_image_combined(original_input_images[i],
                                        original_target_images[i],
                                        counter,
-
                                        val=True)
 
 counter = 0
