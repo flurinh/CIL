@@ -5,6 +5,18 @@ import os
 import numpy as np
 import shutil
 
+def rotate_by_45(image_1):
+    transformed_image = image_1.rotate(45)
+    width, height = image_1.size
+    left = (width - 282) / 2
+    top = (height - 282) / 2
+    right = (width + 282) / 2
+    bottom = (height + 282) / 2
+
+    transformed_image = transformed_image.crop((left, top, right, bottom)).resize((400, 400),
+                                                                                                resample=Image.BICUBIC)
+    return transformed_image
+
 
 def transform_image_combined(image_1, image_2, counter, rescale=False, val=False):
     '''
@@ -44,6 +56,24 @@ def transform_image_combined(image_1, image_2, counter, rescale=False, val=False
             counter += 1
             if counter % 100 == 0:
                 print(counter)
+    transformed_image_input = rotate_by_45(opened_image_1)
+    transformed_image_target = rotate_by_45(opened_image_2)
+    if val is False and rescale is False:
+        transformed_image_input.save(augmented_input_dir + str(counter).zfill(5) + '.png')
+        transformed_image_target.save(augmented_target_dir + str(counter).zfill(5) + '.png')
+        counter += 1
+    if val is True and rescale is False:
+        transformed_image_input.save(val_input_dir + str(counter).zfill(5) + '.png')
+        transformed_image_target.save(val_input_dir + str(counter).zfill(5) + '.png')
+        counter += 1
+    if val is False and rescale is True:
+        transformed_image_input.save(rescaled_input_dir + str(counter).zfill(5) + '.png')
+        transformed_image_target.save(rescaled_target_dir + str(counter).zfill(5) + '.png')
+        counter += 1
+    if val is True and rescale is True:
+        transformed_image_input.save(rescaled_val_input_dir + str(counter).zfill(5) + '.png')
+        transformed_image_target.save(rescaled_val_input_dir + str(counter).zfill(5) + '.png')
+        counter += 1
 
     return counter
 
